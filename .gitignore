@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+vendor/
+venv/
+__pycache__/
+
+# Build outputs
+dist/
+build/
+out/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# WorkBuddy internal
+.workbuddy/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp

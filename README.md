@@ -1,6 +1,8 @@
-# Multi-Model Workflow
+# Multi-Agent Async Workflow
 
-多模型异步协同工作流：用 GitHub Issues 作为任务总线，让不同能力的模型按拓扑结构异步协作，持续流转任务直至闭环。
+多 Agent 异步协同工作流：用 GitHub Issues 作为任务总线，让不同能力的模型按拓扑结构异步协作，持续流转任务直至闭环。
+
+![Architecture Overview](assets/architecture-overview.svg)
 
 ## 核心模式
 
@@ -18,6 +20,10 @@
 ```
 
 **关键洞察：Issue 在这里不是 bug tracker，是跨 session 的持久化消息队列。每个节点只关心自己负责的状态转换。**
+
+### Issue 状态机
+
+![Issue State Machine](assets/issue-state-machine.svg)
 
 ## 节点类型
 
@@ -112,6 +118,10 @@ Executor → [阻塞/需确认] → Human → [决策] → Executor
 
 适用场景：涉及业务决策、模糊需求、高风险变更。
 
+### 拓扑总览
+
+![Topology Patterns](assets/topology-patterns.svg)
+
 ## 多角色协同扩展
 
 ### 多对多（Mesh）
@@ -163,10 +173,14 @@ Executor → [自动化 CI] → [通过] → Reviewer → [通过] → Integrato
 ## 项目结构
 
 ```
-multi-model-workflow/
+multi-agent-workflow/
 ├── README.md                          # 项目说明（你正在看的这个）
 ├── SKILL.md                           # WorkBuddy Skill 定义
+├── LICENSE                            # MIT License
 ├── assets/
+│   ├── architecture-overview.svg      # 核心架构图
+│   ├── issue-state-machine.svg        # Issue 状态机图
+│   ├── topology-patterns.svg          # 流水线拓扑图
 │   ├── issue-template.md             # Issue 模板（Planner 填写）
 │   └── comment-protocol.md           # 各节点 Comment 规范
 └── references/
@@ -177,7 +191,7 @@ multi-model-workflow/
 ## 快速开始
 
 1. Fork 本仓库到你的 GitHub 账号
-2. 克隆到本地：`git clone git@github.com:<your-org>/multi-model-workflow.git`
+2. 克隆到本地：`git clone git@github.com:<your-org>/multi-agent-workflow.git`
 3. 选择一个 repo 作为任务总线，配置 Issue 模板和 Labels
 4. 按 `references/best-practices.md` 配置各节点 Session
 5. 开始跑第一轮流水线验证

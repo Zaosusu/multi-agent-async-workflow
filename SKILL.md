@@ -1,12 +1,12 @@
 ---
-name: multi-model-workflow
-description: 多模型异步协同工作流架构方案。当用户需要建立多 Agent / 多模型组成的异步协作流水线、用 GitHub Issues 作为任务总线、实现规划-研究-实施-审核等角色解耦、或将不同能力的模型按拓扑结构编排时，使用此 skill。适用于 AI-native 团队、自动化流水线、或任何需要高吞吐任务分发与异步闭环的场景。
+name: multi-agent-async-workflow
+description: 多 Agent 异步协同工作流架构方案。当用户需要建立多 Agent / 多模型组成的异步协作流水线、用 GitHub Issues 作为任务总线、实现规划-研究-实施-审核等角色解耦、或将不同能力的模型按拓扑结构编排时，使用此 skill。适用于 AI-native 团队、自动化流水线、或任何需要高吞吐任务分发与异步闭环的场景。
 agent_created: true
 ---
 
-# Multi-Model Workflow
+# Multi-Agent Async Workflow
 
-多模型异步协同工作流：用 GitHub Issues 作为任务总线，让不同能力的模型按拓扑结构异步协作，持续流转任务直至闭环。
+多 Agent 异步协同工作流：用 GitHub Issues 作为任务总线，让不同能力的模型按拓扑结构异步协作，持续流转任务直至闭环。
 
 ## 核心模式
 

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 680 360" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Multi-Agent Async Workflow — Core Architecture</title>
+  <desc>GitHub Issues as task bus, 6 node types async collaborate via reading/writing Issues</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
+        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <style>
+    .th { font: 500 14px sans-serif; }
+    .ts { font: 400 12px sans-serif; }
+    .arr { fill: none; stroke: #999; stroke-width: 1.5; }
+  </style>
+
+  <g style="cursor:pointer">
+    <rect x="40" y="40" width="180" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+    <text class="th" x="130" y="60" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Planner</text>
+    <text class="ts" x="130" y="80" text-anchor="middle" dominant-baseline="central" fill="#534AB7">需求拆解 · 任务编排</text>
+  </g>
+
+  <g style="cursor:pointer">
+    <rect x="250" y="40" width="180" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+    <text class="th" x="340" y="60" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Researcher</text>
+    <text class="ts" x="340" y="80" text-anchor="middle" dominant-baseline="central" fill="#534AB7">调研 · 可行性分析</text>
+  </g>
+
+  <g style="cursor:pointer">
+    <rect x="460" y="40" width="180" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+    <text class="th" x="550" y="60" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Human</text>
+    <text class="ts" x="550" y="80" text-anchor="middle" dominant-baseline="central" fill="#534AB7">决策 · 例外处理</text>
+  </g>
+
+  <path class="arr" d="M130 96 L130 150" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="arr" d="M340 96 L340 150" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="arr" d="M550 96 L550 150" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+
+  <rect x="40" y="150" width="600" height="80" rx="12" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text class="th" x="340" y="172" text-anchor="middle" dominant-baseline="central" fill="#0C447C">GitHub Issues — 任务总线</text>
+  <text class="ts" x="340" y="194" text-anchor="middle" dominant-baseline="central" fill="#185FA5">backlog → ready → in_progress → needs-review → done</text>
+  <text class="ts" x="340" y="214" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">异常分支: blocked · needs-research · needs-human</text>
+
+  <path class="arr" d="M130 230 L130 280" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="arr" d="M340 230 L340 280" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="arr" d="M550 230 L550 280" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+
+  <g style="cursor:pointer">
+    <rect x="40" y="280" width="180" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+    <text class="th" x="130" y="300" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Executor</text>
+    <text class="ts" x="130" y="320" text-anchor="middle" dominant-baseline="central" fill="#534AB7">独立实现 · 提交 PR</text>
+  </g>
+
+  <g style="cursor:pointer">
+    <rect x="250" y="280" width="180" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+    <text class="th" x="340" y="300" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Reviewer</text>
+    <text class="ts" x="340" y="320" text-anchor="middle" dominant-baseline="central" fill="#534AB7">代码审查 · 质量把关</text>
+  </g>
+
+  <g style="cursor:pointer">
+    <rect x="460" y="280" width="180" height="56" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+    <text class="th" x="550" y="300" text-anchor="middle" dominant-baseline="central" fill="#3C3489">Integrator</text>
+    <text class="ts" x="550" y="320" text-anchor="middle" dominant-baseline="central" fill="#534AB7">合并 · 端到端测试</text>
+  </g>
+</svg>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 680 360" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>Issue State Machine</title>
+  <desc>Issue lifecycle from backlog to done, including exception branches</desc>
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
+        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <style>
+    .th { font: 500 13px sans-serif; }
+    .ts { font: 400 11px sans-serif; }
+    .tc { font: 400 11px sans-serif; }
+    .arr { fill: none; stroke: #999; stroke-width: 1.5; }
+    .arr-dash { fill: none; stroke: #ccc; stroke-width: 1.2; stroke-dasharray: 4 3; }
+    .arr-reject { fill: none; stroke: #D85A30; stroke-width: 1.5; }
+  </style>
+
+  <rect x="20" y="50" width="110" height="44" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text class="th" x="75" y="72" text-anchor="middle" dominant-baseline="central" fill="#0C447C">backlog</text>
+
+  <rect x="160" y="50" width="110" height="44" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text class="th" x="215" y="72" text-anchor="middle" dominant-baseline="central" fill="#0C447C">ready</text>
+
+  <rect x="300" y="50" width="110" height="44" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text class="th" x="355" y="72" text-anchor="middle" dominant-baseline="central" fill="#0C447C">in_progress</text>
+
+  <rect x="440" y="50" width="120" height="44" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text class="th" x="500" y="72" text-anchor="middle" dominant-baseline="central" fill="#0C447C">needs-review</text>
+
+  <rect x="580" y="50" width="80" height="44" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <text class="th" x="620" y="72" text-anchor="middle" dominant-baseline="central" fill="#085041">done</text>
+
+  <path class="arr" d="M130 72 L160 72" marker-end="url(#arrow2)"/>
+  <path class="arr" d="M270 72 L300 72" marker-end="url(#arrow2)"/>
+  <path class="arr" d="M410 72 L440 72" marker-end="url(#arrow2)"/>
+  <path class="arr" d="M560 72 L580 72" marker-end="url(#arrow2)"/>
+
+  <path class="arr-reject" d="M470 94 Q 380 130 355 94" marker-end="url(#arrow2)"/>
+  <text class="tc" x="412" y="120" text-anchor="middle" dominant-baseline="central" fill="#993C1D">打回</text>
+
+  <rect x="125" y="200" width="130" height="44" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text class="th" x="190" y="222" text-anchor="middle" dominant-baseline="central" fill="#633806">needs-research</text>
+
+  <rect x="290" y="200" width="110" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text class="th" x="345" y="222" text-anchor="middle" dominant-baseline="central" fill="#712B13">blocked</text>
+
+  <rect x="440" y="200" width="120" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text class="th" x="500" y="222" text-anchor="middle" dominant-baseline="central" fill="#712B13">needs-human</text>
+
+  <path class="arr-dash" d="M215 94 L190 200" marker-end="url(#arrow2)"/>
+  <path class="arr-dash" d="M190 200 Q 175 140 215 94" marker-start="url(#arrow2)"/>
+  <text class="tc" x="145" y="150" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">研究</text>
+
+  <path class="arr-dash" d="M340 94 L345 200" marker-end="url(#arrow2)" marker-start="url(#arrow2)"/>
+  <text class="tc" x="365" y="150" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">阻塞</text>
+
+  <path class="arr-dash" d="M380 94 Q 440 140 500 200" marker-end="url(#arrow2)"/>
+  <path class="arr-dash" d="M500 200 Q 380 140 375 94" marker-start="url(#arrow2)"/>
+  <text class="tc" x="470" y="150" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">人工</text>
+
+  <text class="ts" x="340" y="290" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">异常状态解除后均回到 ready 等待重新分配</text>
+  <text class="ts" x="340" y="318" text-anchor="middle" dominant-baseline="central" fill="#888">实线 = 正常流转 · 虚线 = 异常分支 · 橙色 = Reviewer 打回</text>
+</svg>
