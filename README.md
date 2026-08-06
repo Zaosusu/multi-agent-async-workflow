@@ -12,6 +12,8 @@
 
 **关键洞察：Issue 在这里不是 bug tracker，是跨 session 的持久化消息队列。每个节点只关心自己负责的状态转换。**
 
+**另一个关键点：Agent 只是模型的承载工具，真正干活的是模型。** 所以不要把 Agent 理解成某种特殊的东西——它更像一个带记忆和工具的 wrapper。用 Issue 之后，各节点（背后跑着不同模型）可以无限 loop，持续去 Issue 上面看、认领、处理、流转，形成一个自驱的异步协作闭环。
+
 ### Issue 状态机
 
 ![Issue State Machine](assets/issue-state-machine.svg)
