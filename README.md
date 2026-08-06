@@ -2,6 +2,8 @@
 
 多 Agent 异步协同工作流：用 GitHub Issues 作为任务总线，让不同能力的模型按拓扑结构异步协作，持续流转任务直至闭环。
 
+> 主要贡献者：群友zzszmyf
+
 ![Architecture Overview](assets/architecture-overview.svg)
 
 ## 核心模式
