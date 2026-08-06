@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 680 420" width="100%" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>九九乘法表</title>
+  <desc>1×1 到 9×9 的乘法表</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke"
+        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <style>
+    .h { font: 500 14px sans-serif; }
+    .t { font: 400 12px sans-serif; }
+    .b { font: 400 11px sans-serif; }
+  </style>
+
+  <text class="h" x="340" y="28" text-anchor="middle" dominant-baseline="central" fill="#3C3489">九九乘法表</text>
+  <text class="b" x="340" y="48" text-anchor="middle" dominant-baseline="central" fill="#888">1×1 到 9×9</text>
+  <rect x="60" y="70" width="603" height="32" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text class="h" x="82.5" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">×</text>
+  <text class="h" x="136.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">1</text>
+  <text class="h" x="198.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">2</text>
+  <text class="h" x="260.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">3</text>
+  <text class="h" x="322.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">4</text>
+  <text class="h" x="384.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">5</text>
+  <text class="h" x="446.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">6</text>
+  <text class="h" x="508.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">7</text>
+  <text class="h" x="570.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">8</text>
+  <text class="h" x="632.0" y="86.0" text-anchor="middle" dominant-baseline="central" fill="#0C447C">9</text>
+  <rect x="60" y="102" width="603" height="32" fill="#FFFFFF" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">1</text>
+  <text class="b" x="136.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">1</text>
+  <text class="b" x="198.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">2</text>
+  <text class="b" x="260.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">3</text>
+  <text class="b" x="322.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">4</text>
+  <text class="b" x="384.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">5</text>
+  <text class="b" x="446.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">6</text>
+  <text class="b" x="508.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">7</text>
+  <text class="b" x="570.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">8</text>
+  <text class="b" x="632.0" y="118.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">9</text>
+  <rect x="60" y="134" width="603" height="32" fill="#FAFBFD" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">2</text>
+  <text class="b" x="136.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">2</text>
+  <text class="b" x="198.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">4</text>
+  <text class="b" x="260.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">6</text>
+  <text class="b" x="322.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">8</text>
+  <text class="b" x="384.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">10</text>
+  <text class="b" x="446.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">12</text>
+  <text class="b" x="508.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">14</text>
+  <text class="b" x="570.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">16</text>
+  <text class="b" x="632.0" y="150.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">18</text>
+  <rect x="60" y="166" width="603" height="32" fill="#FFFFFF" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">3</text>
+  <text class="b" x="136.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">3</text>
+  <text class="b" x="198.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">6</text>
+  <text class="b" x="260.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">9</text>
+  <text class="b" x="322.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">12</text>
+  <text class="b" x="384.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">15</text>
+  <text class="b" x="446.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">18</text>
+  <text class="b" x="508.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">21</text>
+  <text class="b" x="570.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">24</text>
+  <text class="b" x="632.0" y="182.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">27</text>
+  <rect x="60" y="198" width="603" height="32" fill="#FAFBFD" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">4</text>
+  <text class="b" x="136.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">4</text>
+  <text class="b" x="198.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">8</text>
+  <text class="b" x="260.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">12</text>
+  <text class="b" x="322.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">16</text>
+  <text class="b" x="384.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">20</text>
+  <text class="b" x="446.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">24</text>
+  <text class="b" x="508.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">28</text>
+  <text class="b" x="570.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">32</text>
+  <text class="b" x="632.0" y="214.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">36</text>
+  <rect x="60" y="230" width="603" height="32" fill="#FFFFFF" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">5</text>
+  <text class="b" x="136.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">5</text>
+  <text class="b" x="198.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">10</text>
+  <text class="b" x="260.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">15</text>
+  <text class="b" x="322.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">20</text>
+  <text class="b" x="384.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">25</text>
+  <text class="b" x="446.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">30</text>
+  <text class="b" x="508.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">35</text>
+  <text class="b" x="570.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">40</text>
+  <text class="b" x="632.0" y="246.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">45</text>
+  <rect x="60" y="262" width="603" height="32" fill="#FAFBFD" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">6</text>
+  <text class="b" x="136.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">6</text>
+  <text class="b" x="198.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">12</text>
+  <text class="b" x="260.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">18</text>
+  <text class="b" x="322.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">24</text>
+  <text class="b" x="384.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">30</text>
+  <text class="b" x="446.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">36</text>
+  <text class="b" x="508.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">42</text>
+  <text class="b" x="570.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">48</text>
+  <text class="b" x="632.0" y="278.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">54</text>
+  <rect x="60" y="294" width="603" height="32" fill="#FFFFFF" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">7</text>
+  <text class="b" x="136.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">7</text>
+  <text class="b" x="198.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">14</text>
+  <text class="b" x="260.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">21</text>
+  <text class="b" x="322.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">28</text>
+  <text class="b" x="384.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">35</text>
+  <text class="b" x="446.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">42</text>
+  <text class="b" x="508.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">49</text>
+  <text class="b" x="570.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">56</text>
+  <text class="b" x="632.0" y="310.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">63</text>
+  <rect x="60" y="326" width="603" height="32" fill="#FAFBFD" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">8</text>
+  <text class="b" x="136.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">8</text>
+  <text class="b" x="198.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">16</text>
+  <text class="b" x="260.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">24</text>
+  <text class="b" x="322.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">32</text>
+  <text class="b" x="384.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">40</text>
+  <text class="b" x="446.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">48</text>
+  <text class="b" x="508.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">56</text>
+  <text class="b" x="570.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">64</text>
+  <text class="b" x="632.0" y="342.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">72</text>
+  <rect x="60" y="358" width="603" height="32" fill="#FFFFFF" stroke="#E8E8E8" stroke-width="0.5"/>
+  <text class="t" x="82.5" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#3C3489">9</text>
+  <text class="b" x="136.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">9</text>
+  <text class="b" x="198.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">18</text>
+  <text class="b" x="260.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">27</text>
+  <text class="b" x="322.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">36</text>
+  <text class="b" x="384.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">45</text>
+  <text class="b" x="446.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">54</text>
+  <text class="b" x="508.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">63</text>
+  <text class="b" x="570.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">72</text>
+  <text class="b" x="632.0" y="374.0" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">81</text>
+</svg>
