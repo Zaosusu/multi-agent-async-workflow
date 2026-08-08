@@ -61,3 +61,10 @@ P0 / P1 / P2
 | `blocked` | 阻塞 | → `ready`（解除后） |
 | `needs-human` | 需人工介入 | → `ready`（人工处理後） |
 | `done` | 已完成 | 终态 |
+
+> 打 `needs-review` 的前提是 Issue 下已有 `✅ 已提交 PR #N` 的 comment，且该 PR body 写了 `Closes #<issue>`。
+> 没有关联 PR 的 `needs-review` 视为无效，Reviewer 应直接退回 `in_progress`。
+
+## 交付与审核
+
+Issue 之后的半程（Executor 交付什么、谁来审、打回怎么走、为什么 Reviewer 必须是独立 session）见 `pr-review-protocol.md`。

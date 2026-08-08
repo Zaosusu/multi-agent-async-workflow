@@ -62,6 +62,75 @@
 - 质量把关：对高优 Issue 做人工 review
 - 边界处理：处理自动化流程无法覆盖的边缘情况
 
+## 交付与审核闭环：Issue → PR → Review
+
+假设 Planner（A）发了一个 Issue，Executor（B）做完了。三个问题：**B 交付什么？谁来审？上下文怎么过去？**
+
+### B 的交付物只能是 PR
+
+不是在 Issue 里贴 diff，不是直接推 main。PR 才同时具备可审核、可挂 CI、可回滚、可关联 Issue、可并发这几件事——它是唯一能被下游节点当作输入的交付形式。
+
+**硬性要求：PR body 必须写 `Closes #<issue>`。** 这一行不是礼貌，是寻址——Reviewer 靠它反查任务契约，缺了它 PR 就是一堆无从判定对错的 diff。
+
+B 完成后要做两件事，缺一不可：开 PR（关联 Issue）+ 回 Issue comment `✅ 已提交 PR #256` 并把标签换成 `needs-review`。只开 PR 不换标签，Reviewer 的 loop 扫不到，任务静默死掉。
+
+### Review 交给独立的 C，不回 A，也不由 B 自审
+
+| 做法 | 判断 | 理由 |
+|------|------|------|
+| A 兼任 review | ❌ | A 是验收标准的作者，审「是否满足自己定的标准」等于自证；且会让规划侧变瓶颈 |
+| 用完即弃 A | ❌ | A 是常驻 producer，它的 loop 跟这个 PR 无关。"用完即弃"是把 session 当上下文容器的旧思路 |
+| 在 A 的 Issue 里指定要 review 的 PR | ⚠️ 部分 | 作为寻址信息是对的，但 review 的**执行权**不能挂在 A 身上 |
+| 独立的 C（Reviewer）审这个 PR | ✅ **采用** | C 是独立 session、独立模型，输入只有 PR diff + 反查到的 Issue |
+| 共享 A/B/C 上下文的 agent team，由人 review team | ❌ 作默认方案 | 共享上下文杀死审核独立性；但可作为**单个节点内部**的实现 |
+
+C 只做一件事：**对着 Issue 的验收标准逐条判 PR。** 但打回的判据不是「验收标准里有没有写」，而是**问题在不在这个 diff 里**——diff 内部的正确性问题、回归、安全缺陷，即使验收标准没提也该打回；想让这个 PR 多做一件事（新功能、顺手重构），则回 A 开新 Issue，本 PR 该过就过。**可以拒收坏的实现，不可以扩大要求。**
+
+### 上下文靠工件传递，不靠 session
+
+```
+Issue  ──承载──→  why / what / 验收标准     = 契约
+  ↕ 双向关联
+ PR    ──承载──→  how / diff / CI / 自检     = 交付
+```
+
+C 的输入 = PR diff + 反查到的 Issue，足够独立判定「是否满足验收标准」。**契约已经外化到工件上了，所以不需要共享上下文。**
+
+### 打回环与升级阈值
+
+```
+B: PR #256 → C: review
+                ├── 通过 → Issue done
+                └── 打回 → Issue 回 in_progress
+                             └→ B 的 loop 扫到「我的 PR 被打回」→ 改 → 重新请审
+```
+
+B 不需要被通知。它的 loop 本来就在扫「assignee 是我 且 `in_progress`」，被打回的任务自然回到视野里——**状态本身就是通知。**
+
+**必须设升级阈值：同一个 PR 被打回 2 次后打 `needs-human`。** 否则 B 和 C 会在「我觉得可以了 / 我觉得还不行」之间无限对打且不收敛。两次之后说明分歧在标准本身，而标准是 A 和人的职责。
+
+## 为什么这个场景必须是多智能体架构
+
+既然 A、B、C 要协作，为什么不开一个共享上下文的 agent team，让人来 review 整个 team？
+
+因为**审核的价值来自独立性，而共享上下文恰好摧毁独立性。**
+
+一个继承了 B 全部上下文的 reviewer，已经读过 B 的推理链并被它说服了。它会把 B 的假设当前提、把 B 的取舍当既定事实——**它抓不到 B 的错，因为 B 的错就在它自己的前提里。** C 的空上下文不是缺陷，是它唯一的资产：C 只能看见 PR 里真实存在的东西，而不是 B 声称它做了什么。
+
+| 维度 | 共享上下文的 agent team | Issue 总线上的独立节点 |
+|------|------------------------|----------------------|
+| 审核独立性 | 无——reviewer 继承实施者的盲区 | 强——只看工件，不看过程 |
+| 规模上限 | 一个上下文窗口就是天花板 | 无界，Issue 数量不受窗口限制 |
+| 崩溃恢复 | session 挂了上下文全丢 | Issue/PR 都在盘上，换个节点接着做 |
+| 并发 | 内部本质是串行对话 | N 个 Executor 真并行 |
+| 模型异构 | 通常同一个模型 | 每个节点可用不同模型；换厂商做 review 能交叉出同模型的共同错法 |
+| 可审计 | 埋在会话记录里 | 每步都是 Issue comment / PR review，可回溯可统计 |
+| 人的位置 | 人 review 每一份产出 | 人 review 这套协议和队列健康度 |
+
+最后一行是真正的收益：**人不该 review 每个 PR，人该 review 这套系统。** 看吞吐（每天流转多少 Issue）、打回率（太高说明 A 的 Issue 写得糙，太低说明 C 在放水）、`blocked` 堆积（哪里断流）、升级频次（哪类分歧反复出现）。指标异常时改的是 Issue 模板和节点 prompt，不是某个 PR。
+
+**agent team 什么时候反而合适**：强耦合、一次性、需要高频来回的探索（比如「这个偶发 bug 到底在哪」），拆成 Issue 的成本高于收益。这时它的正确位置是**某个节点的内部实现**——Researcher 内部开 team 去定位，对总线仍只暴露一个结论 comment。**团队在节点内，协议在节点间。**
+
 ## 流水线拓扑
 
 ### 线性流水线
@@ -179,10 +248,12 @@ multi-agent-workflow/
 │   ├── issue-state-machine.svg        # Issue 状态机图
 │   ├── topology-patterns.svg          # 流水线拓扑图
 │   ├── issue-template.md             # Issue 模板（Planner 填写）
+│   ├── pr-template.md                # PR 模板（Executor 填写）
 │   └── comment-protocol.md           # 各节点 Comment 规范
 └── references/
-    ├── issue-protocol.md             # 完整协议规范（含标签体系）
-    └── best-practices.md             # 落地检查清单与常见坑
+    ├── issue-protocol.md            # 完整协议规范（含标签体系）
+    ├── pr-review-protocol.md        # 交付与审核闭环（Issue → PR → Review）
+    └── best-practices.md            # 落地检查清单与常见坑
 ```
 
 ## 快速开始
@@ -197,8 +268,10 @@ multi-agent-workflow/
 
 - `SKILL.md`：WorkBuddy 可加载的技能定义文件
 - `references/issue-protocol.md`：完整协议规范
+- `references/pr-review-protocol.md`：交付与审核闭环（Issue → PR → Review）
 - `references/best-practices.md`：落地检查清单与常见坑
 - `assets/issue-template.md`：可直接复制使用的 Issue 模板
+- `assets/pr-template.md`：可直接复制使用的 PR 模板
 - `assets/comment-protocol.md`：各节点 Comment 规范
 
 ## License
