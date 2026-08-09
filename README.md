@@ -251,24 +251,32 @@ multi-agent-workflow/
 │   ├── pr-template.md                # PR 模板（Executor 填写）
 │   └── comment-protocol.md           # 各节点 Comment 规范
 └── references/
-    ├── issue-protocol.md            # 完整协议规范（含标签体系）
-    ├── pr-review-protocol.md        # 交付与审核闭环（Issue → PR → Review）
+    ├── setup.md                     # 从零搭总线（建 label、配模板、编排节点）
+    ├── rationale.md                 # 设计理由与适用边界
+    ├── issue-protocol.md            # 标签体系与状态机
+    ├── pr-review-protocol.md        # 交付与审核闭环细则
     └── best-practices.md            # 落地检查清单与常见坑
 ```
 
 ## 快速开始
 
-1. Fork 本仓库到你的 GitHub 账号
-2. 克隆到本地：`git clone git@github.com:<your-org>/multi-agent-workflow.git`
-3. 选择一个 repo 作为任务总线，配置 Issue 模板和 Labels
-4. 按 `references/best-practices.md` 配置各节点 Session
-5. 开始跑第一轮流水线验证
+**作为 skill 用（让 agent 照这套模式干活）**
+
+1. 把本仓库放进你的 skill 目录，agent 加载 `SKILL.md`
+2. 指派角色：告诉 agent「你是这条流水线的 Executor，总线是 `<repo>`」
+3. agent 会自己做开工前检查（确认角色、校验标签齐全），然后扫队列干活
+
+**搭一条流水线**
+
+按 `references/setup.md` 走：建标签 → 放模板到 `.github/` → 配 branch protection 强制审核独立性 → 编排节点 → 放 5 个 Issue 跑一轮看它在哪断。
 
 ## 资源
 
-- `SKILL.md`：WorkBuddy 可加载的技能定义文件
-- `references/issue-protocol.md`：完整协议规范
-- `references/pr-review-protocol.md`：交付与审核闭环（Issue → PR → Review）
+- `SKILL.md`：可加载的技能定义——agent 加载后按角色章节直接干活
+- `references/setup.md`：从零搭总线
+- `references/rationale.md`：设计理由与适用边界
+- `references/issue-protocol.md`：标签体系与状态机
+- `references/pr-review-protocol.md`：交付与审核闭环细则
 - `references/best-practices.md`：落地检查清单与常见坑
 - `assets/issue-template.md`：可直接复制使用的 Issue 模板
 - `assets/pr-template.md`：可直接复制使用的 PR 模板

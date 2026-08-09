@@ -1,377 +1,189 @@
 ---
 name: multi-agent-async-workflow
-description: 多 Agent 异步协同工作流架构方案。当用户需要建立多 Agent / 多模型组成的异步协作流水线、用 GitHub Issues 作为任务总线、实现规划-研究-实施-审核等角色解耦、或将不同能力的模型按拓扑结构编排时，使用此 skill。适用于 AI-native 团队、自动化流水线、或任何需要高吞吐任务分发与异步闭环的场景。
+description: 多 Agent 异步协同工作流。两类场景使用：(1) 你被指派为流水线中的某个节点（Planner / Researcher / Executor / Reviewer / Integrator）去干活——扫 Issue 队列、认领任务、处理、流转状态；(2) 用户要建立多 Agent 异步协作流水线、用 GitHub Issues 作为任务总线、做规划-研究-实施-审核的角色解耦。当出现「看一下队列里有没有我的任务」「按 Issue 实施并提 PR」「review 这个 PR 是否满足 Issue 验收标准」「把需求拆成可执行 Issue」等请求，或用户提到任务总线 / 节点 / 打回 / needs-review 等本协议术语时，加载此 skill。
 agent_created: true
 ---
 
 # Multi-Agent Async Workflow
 
-多 Agent 异步协同工作流：用 GitHub Issues 作为任务总线，让不同能力的模型按拓扑结构异步协作，持续流转任务直至闭环。
+用 GitHub Issues 作为任务总线，多个独立节点异步协作。**你是其中一个节点。**
 
-## 核心模式
+## 先确定你的入口
 
-这不是 prompt 路由，不是 session 桥连 PRD——而是一个**基于 Issue 的多节点异步协作协议**：
+| 情况 | 去哪 |
+|------|------|
+| 你要作为某个节点干活 | 继续往下：开工前检查 → 通用硬规则 → 你的角色章节 |
+| 用户要从零搭这套流水线 | 读 `references/setup.md` |
+| 用户想理解/评估这套架构 | 读 `references/rationale.md` |
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        任务总线                              │
-│                     GitHub Issues                            │
-│                                                             │
-│  backlog → ready → in_progress → review → done             │
-│              ↘         ↗         ↘        ↗                 │
-│              阻塞/澄清反馈  审核打回  需人工介入              │
-└─────────────────────────────────────────────────────────────┘
-```
+## 开工前检查（每轮必做）
 
-**关键洞察：Issue 在这里不是 bug tracker，是跨 session 的持久化消息队列。每个节点只关心自己负责的状态转换。**
+1. **确认总线 repo**：用户指定的 repo，或当前 repo。不确定就问，不要猜。
+2. **确认你是哪个节点**：用户明确指派的角色。**没有指派就问，不要自己挑。** 角色决定你的权限边界，猜错会越权。
+3. **确认标签齐全**：`gh label list | grep -E 'ready|in_progress|needs-review|blocked|needs-human'`。缺标签说明总线没配好 → 停下，告诉用户去看 `references/setup.md`。
+4. **确认本轮边界**：默认**只做一个 pass**——扫队列、处理你能处理的任务、流转状态、报告、结束。除非用户明确要求常驻，否则不要自己开无限循环。
 
-## 节点类型
+## 通用硬规则（所有节点）
 
-### Planner（规划侧）
+这些违反了会破坏整条流水线，优先级高于你对任务的判断：
 
-| 职责 | 具体行为 |
-|------|----------|
-| 需求翻译 | 把模糊的业务需求拆成可执行的独立 Issue |
-| 代码阅读 | 读相关模块，理解现状，找出改动点 |
-| 方案设计 | 给出实现思路、边界条件、测试要点 |
-| 任务编排 | 设定优先级、依赖关系、标签分类 |
-| 持续 push | 源源不断生成/更新 Issue，维护 backlog |
+1. **状态即通知。** 每个动作结束必须更新标签。只干活不换标签 = 下游节点扫不到 = 任务静默死亡。这是最常见的致命错误。
+2. **不越权。** 只做你这个角色的事。**尤其：写代码的人不能批自己的 PR。** 你不确定该不该做某件事时，答案是不做，comment 说明并交给对应角色。
+3. **不扩大范围。** 只处理认领的那个 Issue 写明的事。发现别的问题 → 开新 Issue 或 comment，不要顺手改。
+4. **卡住不自己决策。** 遇到需求不清、权限不足、方案有分歧：comment 说明 + 打 `blocked` 或 `needs-human`，然后停。硬猜下去的代价远大于等一轮。
+5. **一次只认领一个。** 处理完一个再拿下一个，不要批量认领——你可能中途失败，被你锁住的任务会一起卡死。
+6. **所有交接信息写在 Issue / PR 上。** 不要指望「下一个节点知道我刚才想了什么」——它是全新的上下文，只能看见工件。你没写下来的等于不存在。
 
-### Researcher（研究侧）
+## 认领协议
 
-| 职责 | 具体行为 |
-|------|----------|
-| 信息收集 | 针对 Issue 中的未知领域做调研 |
-| 方案产出 | 输出研究结论、可行性分析、竞品对比 |
-| 反馈给 Planner | 在 Issue 里 comment 研究结果，或生成新的子 Issue |
+多个同角色节点可能同时扫到同一个 Issue。认领时：
 
-### Executor（实施侧）
-
-| 职责 | 具体行为 |
-|------|----------|
-| 独立实现 | 按 Issue 描述写代码，不改范围 |
-| 提交闭环 | 提交 PR，关联 Issue，自测通过后推进状态 |
-| 遇到阻塞 | 在 Issue 里 comment 说明卡点，不自己决策 |
-
-### Reviewer（审核侧）
-
-| 职责 | 具体行为 |
-|------|----------|
-| 代码审查 | 审查 PR，关注正确性、边界条件、测试覆盖 |
-| 批准/打回 | 通过则关闭 Issue；打回则 comment 具体问题，状态回退 |
-| 质量把关 | 确保代码符合规范，不引入技术债 |
-
-### Integrator（集成侧）
-
-| 职责 | 具体行为 |
-|------|----------|
-| 合并与验证 | 合并多个相关 PR，确保整体一致 |
-| 端到端测试 | 运行集成测试、E2E 测试 |
-| 发布协调 | 与部署/发布流程对接 |
-
-### Human（真人员工）
-
-| 职责 | 具体行为 |
-|------|----------|
-| 决策确认 | 对阻塞/澄清类 Issue 做最终决策 |
-| 质量把关 | 对高优 Issue 做人工 review |
-| 边界处理 | 处理自动化流程无法覆盖的边缘情况 |
-
-## 交付与审核闭环：Issue → PR → Review
-
-Planner（A）发 Issue，Executor（B）做完了。三个问题：**B 交付什么？谁来审？上下文怎么过去？**
-
-### B 的交付物只能是 PR
-
-PR 同时具备可审核、可挂 CI、可回滚、可关联 Issue、可并发——它是唯一能被下游节点当作输入的交付形式。
-
-**硬性要求：PR body 必须写 `Closes #<issue>`。** 这是寻址，不是礼貌——Reviewer 靠它反查任务契约。
-
-B 完成后两件事缺一不可：开 PR（关联 Issue）+ 回 Issue comment `✅ 已提交 PR #N` 并把标签换成 `needs-review`。只开 PR 不换标签，Reviewer 的 loop 扫不到，任务静默死掉。
-
-### Review 交给独立的 C，不回 A，也不由 B 自审
-
-| 做法 | 判断 | 理由 |
-|------|------|------|
-| A 兼任 review | ❌ | A 是验收标准的作者，审自己定的标准等于自证；且规划侧变瓶颈 |
-| 用完即弃 A | ❌ | A 是常驻 producer，上下文在 Issue 里而不在 A 的会话里 |
-| 在 A 的 Issue 里指定要 review 的 PR | ⚠️ 部分 | 作为寻址信息对，但 review 的执行权不能挂在 A 身上 |
-| 独立的 C（Reviewer）审这个 PR | ✅ **采用** | C 独立 session、独立模型，输入只有 PR diff + 反查到的 Issue |
-| 共享 A/B/C 上下文的 agent team | ❌ 作默认方案 | 共享上下文杀死审核独立性；可作为单个节点内部的实现 |
-
-C 只做一件事：**对着 Issue 的验收标准逐条判 PR。** 但打回的判据不是「验收标准里有没有写」，而是**问题在不在这个 diff 里**——diff 内部的正确性问题、回归、安全缺陷，即使验收标准没提也该打回；想让 PR 多做一件事（新功能、顺手重构），则回 A 开新 Issue。**可以拒收坏的实现，不可以扩大要求。**
-
-### 上下文靠工件传递，不靠 session
-
-Issue 承载 why / what / 验收标准（契约），PR 承载 how / diff / CI / 自检（交付），两者双向关联。C 的输入 = PR diff + 反查到的 Issue，足够独立判定是否满足验收标准。**契约已外化到工件上，所以不需要共享上下文。**
-
-### 打回环与升级阈值
-
-```
-B: PR → C: review ├── 通过 → Issue done
-                  └── 打回 → Issue 回 in_progress → B 的 loop 扫到 → 改 → 重新请审
+```bash
+gh issue edit <n> --add-assignee @me --add-label in_progress --remove-label ready
+gh issue view <n> --json assignees   # 立刻重读校验
 ```
 
-B 不需要被通知，它的 loop 本来就在扫「assignee 是我 且 in_progress」——**状态本身就是通知。**
+重读后如果 assignee 里有别人且不是你在首位 → **让给对方，去拿下一个**。宁可放弃也不要双份产出。
 
-**必须设升级阈值：同一个 PR 被打回 2 次后打 `needs-human`。** 否则 B 和 C 无限对打且不收敛；两次之后说明分歧在标准本身，那是 A 和人的职责。
+---
 
-### 为什么这个场景必须是多智能体架构
+## 你是 Planner
 
-**审核的价值来自独立性，而共享上下文恰好摧毁独立性。** 继承了 B 全部上下文的 reviewer 已经被 B 的推理链说服，会把 B 的假设当前提——它抓不到 B 的错，因为错就在它自己的前提里。C 的空上下文不是缺陷，是它唯一的资产。
-
-| 维度 | 共享上下文的 agent team | Issue 总线上的独立节点 |
-|------|------------------------|----------------------|
-| 审核独立性 | 无——继承实施者的盲区 | 强——只看工件，不看过程 |
-| 规模上限 | 一个上下文窗口就是天花板 | 无界 |
-| 崩溃恢复 | session 挂了上下文全丢 | Issue/PR 在盘上，换节点接着做 |
-| 并发 | 本质是串行对话 | N 个 Executor 真并行 |
-| 模型异构 | 通常同一个模型 | 每节点可换模型；换厂商 review 能交叉出同模型的共同错法 |
-| 可审计 | 埋在会话记录里 | 每步都是 comment / review，可统计 |
-| 人的位置 | 人 review 每份产出 | 人 review 协议和队列健康度 |
-
-**人不该 review 每个 PR，人该 review 这套系统**：吞吐、打回率（太高说明 Issue 写得糙，太低说明 C 在放水）、`blocked` 堆积、升级频次。指标异常时改的是 Issue 模板和节点 prompt，不是某个 PR。
-
-**agent team 什么时候合适**：强耦合、一次性、高频来回的探索（如定位偶发 bug），拆 Issue 成本高于收益。此时它是**某个节点的内部实现**，对总线只暴露一个结论 comment。**团队在节点内，协议在节点间。**
-
-## 流水线拓扑
-
-### 线性流水线
-
-```
-Planner → Researcher → Executor → Reviewer → Integrator → Done
+**扫描**
+```bash
+gh issue list --label backlog --state open
 ```
 
-适用场景：需求明确、流程标准、需要多道质量关卡。
+**动作**
+1. 把模糊需求拆成独立 Issue，粒度控制在 **1-2 小时可完成**（拆不动说明还没想清）
+2. 读相关代码，在 Issue 里写清 `涉及范围`（具体文件），这是下游避免冲突的依据
+3. 套用 `assets/issue-template.md`，**验收标准必须可判定**——「性能更好」不行，「P99 < 200ms」才行
+4. 标注依赖关系和优先级；预分配执行者（填 `指定执行者`）可以彻底避免认领竞争
+5. 置 `ready` 交出
 
-### DAG（有向无环图）
+**禁止**
+- 同时把**文件范围重叠**的多个 Issue 置 `ready`——并行实施必然冲突
+- 一次放出超过 N 个 `in_progress`（N = 实施节点数），否则队列积压
+- 自己去实施或 review 自己定的验收标准
 
-```
-Planner
-    ├── Issue-A → Executor-A → Reviewer-A
-    └── Issue-B → Researcher → Executor-B → Reviewer-B
-                ↘
-                 Issue-C → Executor-C
-```
+---
 
-适用场景：并行任务多、部分任务需要研究、部分可以直接实施。
+## 你是 Researcher
 
-### 环形反馈
-
-```
-Executor → Reviewer → [打回] → Executor
-                ↓
-            [通过] → Done
-```
-
-适用场景：对质量要求高，允许迭代修正。
-
-### 扇入/扇出
-
-```
-Planner
-    ├── Issue-1 → Executor-A
-    ├── Issue-2 → Executor-B
-    └── Issue-3 → Executor-C
-              ↓
-        Integrator（合并）
+**扫描**
+```bash
+gh issue list --label needs-research --state open
 ```
 
-适用场景：一个 Epic 拆成多个子任务，最后需要集成。
+**动作**
+1. 只调研 Issue 里问的那个问题
+2. 结论 comment 回 Issue：`🔍 研究完成：结论是 xxx，建议方案：yyy`
+3. **产出必须可落地**——把结论转成具体可执行的 Issue，或补全原 Issue 的实现要点
+4. 转 `ready`（可实施）或 `blocked`（发现需求本身不清）
 
-### 人工介入点
+**禁止**
+- 交一份没人能接的研究报告就完事
+- 顺手把方案实现掉
 
-```
-Executor → [阻塞/需确认] → Human → [决策] → Executor
-```
+---
 
-适用场景：涉及业务决策、模糊需求、高风险变更。
+## 你是 Executor
 
-## Issue 协议规范
-
-为了让多节点稳定协作，Issue 本身需要承载足够信息。
-
-### Issue 模板（Planner 填写）
-
-```markdown
-## 背景
-[为什么做这个改动]
-
-## 目标
-[期望达到的效果]
-
-## 涉及范围
-- 文件：`src/xxx.ts`, `src/yyy.ts`
-- 模块：xxx module
-
-## 实现要点
-1. [关键步骤 1]
-2. [关键步骤 2]
-
-## 验收标准
-- [ ] 测试用例 A 通过
-- [ ] 不影响现有功能 B
-
-## 优先级
-P0 / P1 / P2
-
-## 标签
-`enhancement` `area:xxx` `draft`
-
-## 指定执行者
-@executor-A / @executor-B / @human
-
-## 依赖
-- #123 (必须先完成)
-- #456 (可并行)
+**扫描**（含被打回退回来的）
+```bash
+gh issue list --assignee @me --label in_progress --state open
+gh issue list --label ready --state open        # 无人认领的
 ```
 
-### 节点 Comment 规范
-
-| 节点 | Comment 格式 |
-|------|-------------|
-| Planner | `📋 新建 Issue #[number]，背景：xxx` |
-| Researcher | `🔍 研究完成：结论是 xxx，建议方案：yyy` |
-| Executor | `👋 开始处理，预计 [时间]` / `✅ 已提交 PR #[number]` |
-| Reviewer | `👍 通过` / `🚫 打回：具体问题 xxx` |
-| Integrator | `🔗 已合并 PR #[a] 和 #[b]，集成测试通过` |
-| Human | `✅ 已确认：xxx` / `❌ 不同意，理由：xxx` |
-| 任意节点 | `🚧 阻塞原因：xxx，需要 @xxx 确认` |
-
-## 使用方式
-
-### 1. 基础配置
-
-确定一个 GitHub Repository 作为任务总线：
-- 建立 Issue 模板
-- 配置 Labels（`enhancement` / `bug` / `draft` / `blocked` / `needs-review` 等）
-- 配置 Milestones（可选，用于按版本管理）
-
-### 2. 各节点 Prompt 要点
-
-#### Planner
-
-- 扫描代码库变更和业务需求
-- 生成结构化 Issue，包含完整字段
-- 控制并发：一次最多 N 个 in_progress
-- 参考 `assets/issue-template.md`
-
-#### Researcher
-
-- 扫描带有 `needs-research` 标签的 Issue
-- 产出研究结论，更新 Issue 描述或添加 comment
-- 如发现需求不清晰，标记 `blocked` 并 @Planner
-
-#### Executor
-
-- 扫描分配给自己的 Issue（含被打回退回 `in_progress` 的）
-- 按描述实现，不超出范围
-- 提交 PR，body 写 `Closes #<issue>`，套用 `assets/pr-template.md`
-- 回 Issue comment `✅ 已提交 PR #N` 并换标签为 `needs-review`
-
-#### Reviewer
-
-- 扫描带有 `needs-review` 标签的 Issue，反查其关联 PR
-- 逐条对着 Issue 的验收标准判 PR，不加新需求（要加就回 Planner 开 Issue）
-- 通过则推进 `done`；打回则在 PR 上留具体到文件行的 comment，Issue 退回 `in_progress`
-- 同一 PR 打回 2 次后打 `needs-human` 升级
-
-#### Integrator
-
-- 扫描所有已合并的 PR，识别需要集成的任务
-- 合并相关分支，运行集成测试
-- 验证通过后关闭 Epic Issue
-
-#### Human
-
-- 扫描带有 `blocked` 或 `needs-human` 标签的 Issue
-- 做决策、澄清需求、处理例外
-
-### 3. 会话桥连方案
-
-#### 方案 A：独立 Session + 定时轮询（推荐起步）
-
-```
-Planner Session:  每 N 小时 → 扫描 → 生成 Issue
-Researcher Session: 每 M 小时 → 扫描 needs-research → 研究
-Executor Session:  每 M 小时 → 扫描 assigned to me → 实现
-Reviewer Session:  每 M 小时 → 扫描 needs-review → 审查
+**动作**
+1. 按认领协议锁定 Issue
+2. 开分支：`<你的节点名>/<issue号>-<slug>`，例 `executor-a/128-fix-retry-backoff`
+3. 按 Issue 实现。**验收标准写不明确 / 前后矛盾 → 不要硬猜**：comment 问题 + 打 `needs-clarification` 退回 `ready` 给 Planner
+4. 自测通过后提 PR，套用 `assets/pr-template.md`，**body 必须写 `Closes #<issue号>`**（Reviewer 靠它反查契约，缺了 PR 就是无从判定的 diff）
+5. 收尾**两件事缺一不可**：
+```bash
+gh pr create --title "..." --body "Closes #128\n\n..."
+gh issue comment 128 --body "✅ 已提交 PR #256"
+gh issue edit 128 --add-label needs-review --remove-label in_progress
 ```
 
-- 优点：完全解耦，各自独立运行
-- 缺点：延迟取决于轮询间隔
+**被打回时**：改完 comment `🔄 已按 review 意见修正，PR #N 请复审`，重新置 `needs-review`。
 
-#### 方案 B：Webhook 触发
+**禁止**
+- 直接推 main / force push
+- 改 CI 配置、密钥、依赖版本（除非 Issue 明确要求）
+- 超出 Issue 范围的「顺手优化」
+- **review 或合并自己的 PR**
 
-```
-GitHub Webhook → Issue labeled / PR opened → 触发对应 Session
-```
+---
 
-- 优点：实时响应
-- 缺点：需要部署 webhook receiver
+## 你是 Reviewer
 
-#### 方案 C：人工 / Agent 调度器
+**前提**：你必须不是这个 PR 的作者。是的话停下，交给别人。
 
-```
-调度器 Agent → 检查 Issue/PR 状态 → 决定唤醒哪个节点 Session
-```
-
-- 优点：集中控制，可以做更复杂的编排
-- 缺点：多一层调度复杂度
-
-## 多角色协同扩展
-
-### 多对多（Mesh）
-
-```
-Planner-A ─┐
-Planner-B ─┤→ Issue Bus ←┬── Executor-A
-Planner-C ─┘              ├── Executor-B
-                          ├── Reviewer-A
-                          └── Reviewer-B
+**扫描**
+```bash
+gh issue list --label needs-review --state open
+gh pr view <n> --json body,files,statusCheckRollup   # 反查关联 Issue、看 CI
 ```
 
-做法：用标签/里程碑/assignee 区分来源和职责，各节点按规则过滤处理。
+**动作**
+1. PR 没写 `Closes #<issue>` → 直接打回，不进入审查（无契约不可判定）
+2. CI 红 → 打回，不浪费一轮人工审查
+3. 读 Issue 的验收标准，**逐条对着 diff 判**
+4. 通过 → `👍 通过，可以合并`，Issue 置 `done`（有 Integrator 则交给它）
+5. 打回 → comment **具体到文件和行**：`🚫 打回（第 N 次）：xxx`，Issue 退回 `in_progress`，PR 保持 open
 
-### 按领域拆分
+**打回的判据是「问题在不在这个 diff 里」，不是「验收标准有没有写」**
+
+| 情况 | 能否打回 |
+|------|---------|
+| diff 内部的正确性问题、回归、安全/资源缺陷 | ✅ 可以，**即使验收标准没提** |
+| 想让这个 PR 多做一件事（新功能、顺手重构、覆盖新场景） | ❌ 不可以，回 Planner 开新 Issue，本 PR 该过就过 |
+
+**可以拒收坏的实现，不可以扩大要求。** 只按标准打勾会放过 Planner 没预料到的真 bug，而那正是独立 review 最该抓的；反过来在 review 里加需求会让 PR 永远合不进去。
+
+**升级**：同一 PR 已被打回 2 次 → 打 `needs-human`，comment 说明分歧点。分歧在标准本身，不是你和 Executor 能谈出来的，继续对打只会烧钱且不收敛。
+
+---
+
+## 你是 Integrator
+
+**扫描**
+```bash
+gh pr list --state open --label approved
+```
+
+**动作**
+1. 合并已批准且 CI 绿的 PR；冲突**不要自己硬解**——退回对应 Executor（它有上下文，你没有）
+2. 跑集成 / E2E 测试
+3. 通过 → 关闭相关 Issue；失败 → `❌ 集成测试失败：xxx`，相关 Issue 退回 `in_progress`
+4. 多个 PR 合成一个 Epic 时，确认整体一致而非逐个正确
+
+**禁止**：合并未经 Reviewer 批准的 PR；跳过集成测试。
+
+---
+
+## 报告格式
+
+每轮结束向用户汇报，别只说「做完了」：
 
 ```
-Planner（技术债） → Executor（后端） → Reviewer（后端）
-Planner（业务需求） → Executor（前端） → Reviewer（前端）
-Planner（探索） → Researcher → Planner（转成 Issue）
+处理：#128 修复重试退避
+动作：提交 PR #256，Issue 转 needs-review
+下一步：等 Reviewer 节点
+队列：ready 3 个 / in_progress 1 个 / blocked 1 个（#131 等 Human 决策）
 ```
 
-做法：不同领域用不同 milestone 或 repo 隔离，避免交叉干扰。
+## 参考
 
-### 质量门控
-
-```
-Executor → [自动化 CI] → [通过] → Reviewer → [通过] → Integrator
-                ↓                    ↓
-             [失败] → Executor    [打回] → Executor
-```
-
-做法：CI 状态作为第一个关卡，减少 Reviewer 负担。
-
-## 为什么 Issue 比 PRD 更适合做资产管理
-
-| 维度 | PRD | GitHub Issues |
-|------|-----|---------------|
-| 结构化程度 | 自由文本，格式不统一 | 模板化，字段固定 |
-| 可追踪性 | 文档更新历史，不显式 | 每个 Issue 有独立生命周期 |
-| 异步边界 | 弱，需要人解读 | 强，标签/状态/comment 自解释 |
-| 并发安全 | 多人编辑冲突 | 天然支持多 Issue 并行 |
-| 集成度 | 离代码远 | 原生关联 PR、Commit、CI |
-| 搜索/筛选 | 全文搜索 | 标签、milestone、assignee 多维筛选 |
-| 成本 | 高（需要维护文档） | 低（Issue 本身就是资产） |
-
-**核心优势：Issue 是代码和需求之间的「标准化接口」。**
-
-## 资源文件
-
-- `references/issue-protocol.md`：Issue 模板与 Comment 规范
-- `references/pr-review-protocol.md`：交付与审核闭环（Issue → PR → Review）
-- `references/best-practices.md`：落地检查清单与常见坑
-- `assets/issue-template.md`：可直接复制使用的 Issue 模板
-- `assets/pr-template.md`：可直接复制使用的 PR 模板
-- `assets/comment-protocol.md`：各节点 Comment 规范
+| 文件 | 内容 |
+|------|------|
+| `assets/issue-template.md` | Issue 模板（Planner） |
+| `assets/pr-template.md` | PR 模板（Executor） |
+| `assets/comment-protocol.md` | 各节点 comment 话术 |
+| `references/issue-protocol.md` | 完整标签体系与状态机 |
+| `references/pr-review-protocol.md` | 交付与审核闭环细则 |
+| `references/setup.md` | 从零搭总线（建 label、配模板、编排节点） |
+| `references/rationale.md` | 为什么这么设计、为什么不用共享上下文的 agent team |
+| `references/best-practices.md` | 落地检查清单与 15 个坑 |
