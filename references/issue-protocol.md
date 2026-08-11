@@ -59,8 +59,11 @@ P0 / P1 / P2
 | `needs-research` | 需研究 | → `ready` |
 | `needs-review` | 待审核 | → `done` / `in_progress` |
 | `blocked` | 阻塞 | → `ready`（解除后） |
-| `needs-human` | 需人工介入 | → `ready`（人工处理後） |
+| `needs-lead` | 需总负责人裁决（规格/优先级/方案分歧） | → `ready` / `in_progress` |
+| `needs-human` | 需真人决定（花钱/对外承诺/法律权限/业务方向） | → `ready`（决策后） |
 | `done` | 已完成 | 终态 |
+
+> `needs-lead` 与 `needs-human` 不可合并成一个：前者总负责人自己拍板，后者必须到真人。混用会导致本该一句话解决的分歧堆着等人，或 AI 替真人做了它不该做的决定。
 
 > 打 `needs-review` 的前提是 Issue 下已有 `✅ 已提交 PR #N` 的 comment，且该 PR body 写了 `Closes #<issue>`。
 > 没有关联 PR 的 `needs-review` 视为无效，Reviewer 应直接退回 `in_progress`。

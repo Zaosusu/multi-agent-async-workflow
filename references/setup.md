@@ -14,9 +14,12 @@ gh label create needs-research     --color 1d76db --description "需调研"
 gh label create needs-review       --color d93f0b --description "待审核"
 gh label create needs-clarification --color d4c5f9 --description "验收标准不清，退回 Planner"
 gh label create blocked            --color b60205 --description "阻塞"
-gh label create needs-human        --color 5319e7 --description "需人工决策"
+gh label create needs-lead         --color 5319e7 --description "需总负责人裁决（规格/优先级/方案分歧）"
+gh label create needs-human        --color e11d21 --description "需真人决定（花钱/对外承诺/法律权限/业务方向）"
 gh label create approved           --color 0e8a16 --description "已批准，待合并"
 ```
+
+`needs-lead` 和 `needs-human` **必须分开**：前者总负责人自己就能拍板，后者必须到真人。合成一个的后果是两头都错——本该一句话解决的分歧堆着等真人，或者 AI 替你决定了它不该决定的事。
 
 ## 3. 放模板到 GitHub 认的位置
 
@@ -53,11 +56,13 @@ labels: backlog
 
 | 节点 | 数量 | 建议 |
 |------|------|------|
-| Planner | 1 | 用推理强的模型，它决定整条流水线的输入质量 |
+| 总负责人（Planner + Reviewer + Integrator） | 1 | 用推理强的模型。它定规格、验收、持合并权，决定整条流水线的质量上限 |
 | Executor | 1-N | 用代码能力强 / 长上下文的模型；N 决定并发度 |
-| Reviewer | 1 | **换一家的模型**——同模型容易犯同样的错，交叉验证才有价值 |
+| （可选）review 负责人 | 0-1 | 由总负责人任命。**换一家的模型**——同模型容易犯同样的错，交叉验证才有价值 |
 
-Researcher / Integrator 在需要时再加。Human 是必需的：至少要有人扫 `needs-human` 队列。
+最小可用配置就是 **1 个总负责人 + 1 个 Executor**。Researcher / 独立 Reviewer 在需要时再加。
+
+真人是必需的，但只在两处投入：**① 底层框架期逐项验收骨架**（框架的错会被每个后续任务继承，且抽查结果发现不了）；**② 框架通过后只看交付结果**，不看 PR。另外要有人扫 `needs-human` 队列。
 
 ## 6. 驱动方式
 
