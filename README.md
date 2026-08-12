@@ -47,7 +47,7 @@
 ### Reviewer（审核侧）
 
 - 代码审查：审查 PR，关注正确性、边界条件、测试覆盖
-- 批准/打回：通过则关闭 Issue；打回则 comment 具体问题，状态回退
+- 批准/打回：通过则转 `approved` 交集成；打回则 comment 具体问题，状态回退
 - 质量把关：确保代码符合规范，不引入技术债
 
 ### Integrator（集成侧）
@@ -85,7 +85,7 @@ B 完成后要做两件事，缺一不可：开 PR（关联 Issue）+ 回 Issue 
 | 拆出独立的 C（Reviewer） | ✅ 规模化时的优化 | 想跨模型交叉验证，或总负责人成了吞吐瓶颈时拆 |
 | 共享 A/B/C 上下文的 agent team，由人 review team | ❌ 作默认方案 | 共享上下文杀死审核独立性；但可作为**单个节点内部**的实现 |
 
-**不要把「不能自审」外推成「规格作者不能审」。** 前者约束的是**代码作者**；后者是不同的事，硬禁的后果是只有 1 个 lead + N 个 Executor 时没人能合并，流水线直接死锁。**合并权归总负责人**：由它决定哪些 PR 能进、按什么顺序进、是否只择取部分内容。
+**不要把「不能自审」外推成「规格作者不能审」。** 前者约束的是**代码作者**；后者是不同的事，硬禁的后果是只有 1 个 lead + N 个 Executor 时没人能合并，流水线直接死锁。**合并权归总负责人**：由它决定哪些 PR 能进、按什么顺序进、是否只择取部分内容。审核独立性按用户任命的 Agent 实例判断，不按 GitHub 用户名判断；多个 Agent 可以共用同一 GitHub 账号。
 
 C 只做一件事：**对着 Issue 的验收标准逐条判 PR。** 但打回的判据不是「验收标准里有没有写」，而是**问题在不在这个 diff 里**——diff 内部的正确性问题、回归、安全缺陷，即使验收标准没提也该打回；想让这个 PR 多做一件事（新功能、顺手重构），则回 A 开新 Issue，本 PR 该过就过。**可以拒收坏的实现，不可以扩大要求。**
 
@@ -103,14 +103,14 @@ C 的输入 = PR diff + 反查到的 Issue，足够独立判定「是否满足�
 
 ```
 B: PR #256 → C: review
-                ├── 通过 → Issue done
+                ├── 通过 → Issue approved → Integrator 合并 + main 验证 → Issue done
                 └── 打回 → Issue 回 in_progress
                              └→ B 的 loop 扫到「我的 PR 被打回」→ 改 → 重新请审
 ```
 
 B 不需要被通知。它的 loop 本来就在扫「assignee 是我 且 `in_progress`」，被打回的任务自然回到视野里——**状态本身就是通知。**
 
-**必须设升级阈值：同一个 PR 被打回 2 次后打 `needs-human`。** 否则 B 和 C 会在「我觉得可以了 / 我觉得还不行」之间无限对打且不收敛。两次之后说明分歧在标准本身，而标准是 A 和人的职责。
+**必须设升级阈值：同一个 PR 被打回 2 次后打 `needs-lead`。** 否则 B 和 C 会在「我觉得可以了 / 我觉得还不行」之间无限对打且不收敛。只有花钱、对外承诺、法律权限、业务方向或拿不到的外部信息才打 `needs-human`。
 
 ## 为什么这个场景必须是多智能体架构
 
@@ -161,7 +161,7 @@ Planner
 ```
 Executor → Reviewer → [打回] → Executor
                 ↓
-            [通过] → Done
+            [通过] → Approved → Integrator → Done
 ```
 
 适用场景：对质量要求高，允许迭代修正。
@@ -244,7 +244,7 @@ Executor → [自动化 CI] → [通过] → Reviewer → [通过] → Integrato
 ```
 multi-agent-workflow/
 ├── README.md                          # 项目说明（你正在看的这个）
-├── SKILL.md                           # WorkBuddy Skill 定义
+├── SKILL.md                           # 可加载的工作流 Skill 定义
 ├── LICENSE                            # MIT License
 ├── assets/
 │   ├── architecture-overview.svg      # 核心架构图

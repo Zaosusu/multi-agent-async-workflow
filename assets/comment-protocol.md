@@ -4,7 +4,7 @@
 
 - 新建 Issue：`📋 新建 Issue #[number]，背景：xxx`
 - 更新需求：`📝 更新 Issue #[number]：xxx`
-- 关闭 Issue：`✅ 已关闭，需求已实现`
+- 分配主体：`📌 任命：执行主体 xxx；审核主体 yyy；集成主体 zzz`
 
 ## Researcher
 
@@ -22,15 +22,15 @@
 
 ## Reviewer
 
-- 通过：`👍 通过，可以合并`
-- 打回：`🚫 打回（第 N 次）：具体问题 xxx，请修正后重新提交`（问题要具到文件和行）
+- 通过：`审核主体：xxx；实现主体：yyy；👍 审核通过，可以合并`（Issue 转 `approved`）
+- 打回：`审核主体：xxx；实现主体：yyy；🚫 打回（第 N 次）：具体问题 xxx，请修正后重新提交`（问题要具到文件和行，Issue 回 `in_progress`）
 - 建议改进：`💡 建议改进：xxx（不影响通过）`
 - 超出范围：`↩️ 这一点超出本 Issue 验收标准，已建议 Planner 开新 Issue，本 PR 不因此阻塞`
-- 升级：`⬆️ 同一 PR 已打回 2 次，分歧在验收标准本身，打 needs-human 升级`
+- 升级：`⬆️ 同一 PR 已打回 2 次，分歧在验收标准本身，打 needs-lead 升级`
 
 ## Integrator
 
-- 合并完成：`🔗 已合并 PR #[a] 和 #[b]，集成测试通过`
+- 合并完成：`集成主体：xxx；🔗 已合并 PR #[a]；合并前 main: [sha]；PR head: [sha]；合并后 main: [sha]；验证：`[command]` 通过`（移除活动标签，添加 `done`）
 - 集成失败：`❌ 集成测试失败：xxx，请修复`
 
 ## Human

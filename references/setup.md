@@ -41,14 +41,16 @@ labels: backlog
 ---
 ```
 
-## 4. 强制审核独立性（关键）
+## 4. 建立审核独立性与任命记录（关键）
 
 「实施者不能批自己的 PR」如果只写在 prompt 里，就只是自觉。让它变成硬约束：
 
-1. **每个节点用独立身份**：各自的 bot 账号 / PAT，而不是共用一个 token。否则 GitHub 眼里所有节点都是同一个人，无法区分作者与审核者。
-2. **开 branch protection**：要求 PR 至少 1 个 approval，且勾选「不允许作者自我批准」；要求 CI 通过；禁止 force push 到 main。
+1. **按 Agent 实例任命角色**：用户可以让多个 Agent 共用一个 GitHub 账号。每个可执行 Issue 记录 `指定执行者`、`审核负责人`、`集成负责人`；这些字段写 Agent 实例名，不写 GitHub 用户名。
+2. **禁止同一 Agent 实例审核或合并自己的实现**：GitHub 账号相同不代表自审，代码作者才是边界。
+3. **同账号模式用工件留痕**：GitHub 可能不允许同账号发原生 approval/request-changes；Reviewer 用 PR 评论写明审核主体和结论，Issue 标签按 `needs-review -> approved -> done` 流转。
+4. **branch protection 是可选增强**：有独立 GitHub 身份时，可要求 approval、CI 和禁止 force push；共用账号时不能把原生 approval 作为协议的必经条件，仍必须要求 CI 和禁止直接推送 main。
 
-这一步做了，即使某个节点的 prompt 失效，也越不了权。
+工件中的任命、评论、标签和 main 验证共同形成可追溯闭环；GitHub 身份只是可选的额外门禁。
 
 ## 5. 编排节点
 

@@ -9,9 +9,10 @@
 每个节点只关心自己负责的状态转换。节点之间不共享上下文、不互相调用、不需要中心调度器，它们只做一件事：看队列 → 认领 → 处理 → 流转状态 → 再看。
 
 ```
-backlog → ready → in_progress → needs-review → done
-            ↖        ↓              ↓
-             ← 打回 ─┴─ blocked / needs-human
+backlog → ready → in_progress → needs-review → approved → done
+            ↖        ↓              ↓             ↓
+             ← 打回 ─┴─ blocked / needs-lead / needs-human
+                                      集成失败 → in_progress
 ```
 
 ## 上下文靠工件传递，不靠 session
@@ -25,6 +26,8 @@ Issue  ──承载──→  why / what / 验收标准    = 契约
 ```
 
 Reviewer 的输入 = PR diff + 反查到的 Issue，足够独立判定「是否满足验收标准」。契约已经外化，所以不需要共享上下文。
+
+审核独立性以用户任命的 Agent 实例为边界，不以 GitHub 登录名为边界。因此多个 Agent 可以共用一个 GitHub 账号；同一实例仍不能审核或合并自己的实现。
 
 推论：**你没写在 Issue / PR 上的东西等于不存在。** 下游节点是全新的上下文，看不见你的思考过程。
 

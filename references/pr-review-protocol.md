@@ -28,7 +28,7 @@ Executor 完成后要做两件事，缺一不可：
 
 第 2 步是给总线发信号。只开 PR 不换标签，Reviewer 的 loop 扫不到，任务就静默死掉了。
 
-## 2. Review 交给独立的 Reviewer 节点
+## 2. Review 交给独立的 Reviewer Agent 实例
 
 面对"B 提完 PR 之后谁管"，有几种做法，取舍如下：
 
@@ -43,15 +43,37 @@ Executor 完成后要做两件事，缺一不可：
 
 > **不要把「不能自审」外推成「规格作者不能审」。** 前者约束的是代码作者，因为它继承了实现的盲区；后者是不同的事——没人再检查「验收标准本身定得对吗」，但那不是 code review 的职责，而是人和队列指标该管的。把它写成硬禁令的后果是：只有 1 个 lead + N 个 Executor 时没人能合并，流水线直接死锁。
 
+### 同一 GitHub 账号下的审核记录
+
+用户可以用同一个 GitHub 账号控制多个 Agent。是否独立按**被任命的 Agent 实例**判断，不按 GitHub 登录名判断；同一实例仍不能审核或合并自己的代码。
+
+当 GitHub 拒绝同账号的原生 approval/request-changes 时，PR 评论和 Issue 标签就是正式记录：
+
+```markdown
+审核主体：Reviewer-A
+实现主体：Executor-B
+👍 审核通过，可以合并
+```
+
+或：
+
+```markdown
+审核主体：Reviewer-A
+实现主体：Executor-B
+🚫 打回（第 1 次）：`path/file.ext:42` ...
+```
+
+原生 GitHub review 在可用时可以叠加使用，但不是协议的必要条件。
+
 ### 合并权归总负责人
 
 Executor 提 PR，但对合并没有决定权。由总负责人决定**哪些 PR 能进、按什么顺序进、是否只择取部分内容**（基于已废弃架构的 PR 即使代码没错也不该合；旧 PR 里有可复用的东西，应该关掉它并开新 Issue 指明「从 PR #N 摘取 xxx」）。多个 PR 文件范围重叠时由总负责人裁决先后，不要让 Executor 自行协商——它们互相看不见彼此的上下文。
 
 ### Reviewer 的判定边界
 
-C 只做一件事：**对着 Issue 的验收标准逐条判 PR。**
+C 只做一件事：**对着 Issue 的验收标准、涉及范围和非目标逐条判 PR。** 逐个检查变更文件：文件必须属于 Issue 的范围，内容不得落入明确禁止事项；发现越界实现时，要求从 PR 删除或另开 Issue 承接，不把未授权内容作为“额外完成”放行。
 
-- 满足 → `👍 通过，可以合并` → Issue 打 `done`（或交给 Integrator）
+- 满足 → `👍 审核通过，可以合并` → Issue 从 `needs-review` 转为 `approved`
 - 不满足 → `🚫 打回：<具体到文件和行的问题>` → Issue 退回 `in_progress`，PR 保持 open
 - 想扩大范围 → **不准在 review 里加**。回 A 开新 Issue，本 PR 该过就过
 
@@ -72,7 +94,7 @@ C 只做一件事：**对着 Issue 的验收标准逐条判 PR。**
 
 ```
 B: PR #256 ──→ C: review
-                 ├── 通过 → Issue done
+                 ├── 通过 → Issue approved → Integrator 合并 + main 验证 → Issue done
                  └── 打回 → Issue 回 in_progress
                               └→ B 的 loop 扫到「我的 PR 被打回」→ 改 → 重新请审
 ```
@@ -123,3 +145,14 @@ C 的空上下文不是缺陷，是它唯一的资产：C 只能看见 PR 里真
 ## 5. PR 模板
 
 见 `../assets/pr-template.md`。要点只有三个：关联哪个 Issue、验收标准逐条自检、明确说了什么没做（防止 Reviewer 把未做项当遗漏）。
+
+## 6. 集成前的新鲜度与最终收尾
+
+Integrator 处理 `approved`，而不是 Reviewer 通过后直接关闭 Issue。合并前必须执行以下新鲜度闸门：
+
+1. 拉取 `main`，记录当前 `main` SHA 和 PR head SHA。
+2. 通过 GitHub CLI/API 查询 PR 的 `baseRefOid`、`headRefOid`、`mergeable`、`mergeStateStatus` 和 CI；只有 `mergeable = MERGEABLE` 且状态为 clean 才能继续。
+3. 若 `main` 在 PR 创建或审核后前进，要求 Executor 更新分支；在更新后的分支或合并结果上运行受影响验证。
+4. 无法读取 GitHub API 状态时不得宣称 PR 可安全合并；仅有 SSH refs 只能用于观察提交，不能代替 mergeable/CI 检查。
+
+合并后必须重新拉取 `main`，确认 PR 已 merged，再在 `main` 上执行规定验证；在 Issue 留下合并前 `main` SHA、PR head SHA、合并后的 main commit SHA、验证命令和结果。最后移除活动标签并添加 `done`。只有这一步完成，交付才真正结束。

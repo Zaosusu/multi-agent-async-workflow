@@ -1,7 +1,6 @@
 ---
 name: multi-agent-async-workflow
 description: 多 Agent 异步协同工作流。两类场景使用：(1) 你被指派为流水线中的某个节点（Planner / Researcher / Executor / Reviewer / Integrator）去干活——扫 Issue 队列、认领任务、处理、流转状态；(2) 用户要建立多 Agent 异步协作流水线、用 GitHub Issues 作为任务总线、做规划-研究-实施-审核的角色解耦。当出现「看一下队列里有没有我的任务」「按 Issue 实施并提 PR」「review 这个 PR 是否满足 Issue 验收标准」「把需求拆成可执行 Issue」等请求，或用户提到任务总线 / 节点 / 打回 / needs-review 等本协议术语时，加载此 skill。
-agent_created: true
 ---
 
 # Multi-Agent Async Workflow
@@ -21,7 +20,7 @@ agent_created: true
 
 1. **确认总线 repo**：用户指定的 repo，或当前 repo。不确定就问，不要猜。
 2. **确认你是哪个节点**：用户明确指派的角色。**没有指派就问，不要自己挑。** 角色决定你的权限边界，猜错会越权。
-3. **确认标签齐全**：`gh label list | grep -E 'ready|in_progress|needs-review|needs-lead|blocked|needs-human'`。缺标签说明总线没配好 → 停下，告诉用户去看 `references/setup.md`。
+3. **确认标签齐全**：确认至少有 `backlog`、`ready`、`in_progress`、`needs-review`、`approved`、`done`、`needs-lead`、`blocked`、`needs-human`。缺标签说明总线没配好 → 停下，告诉用户去看 `references/setup.md`。
 4. **确认本轮边界**：默认**只做一个 pass**——扫队列、处理你能处理的任务、流转状态、报告、结束。除非用户明确要求常驻，否则不要自己开无限循环。
 
 ## 通用硬规则（所有节点）
@@ -33,7 +32,9 @@ agent_created: true
 3. **不扩大范围。** 只处理认领的那个 Issue 写明的事。发现别的问题 → 开新 Issue 或 comment，不要顺手改。
 4. **卡住不自己决策。** 遇到需求不清、权限不足、方案有分歧：comment 说明 + 打标签，然后停。硬猜下去的代价远大于等一轮。**分清找谁**：分歧在规格/优先级/技术方案 → `needs-lead`（总负责人能裁决）；涉及花钱、对外承诺、法律权限、业务方向 → `needs-human`（必须真人）。
 5. **一次只认领一个。** 处理完一个再拿下一个，不要批量认领——你可能中途失败，被你锁住的任务会一起卡死。
-6. **所有交接信息写在 Issue / PR 上。** 不要指望「下一个节点知道我刚才想了什么」——它是全新的上下文，只能看见工件。你没写下来的等于不存在。
+6. **所有交接信息写在 Issue / PR 上。** 不要指望「下一个节点知道我刚才想了什么」——它是全新的上下文，只能看见工件。你没写下来的等于不存在。每个可执行 Issue 和 PR 都必须记录执行主体、审核主体、集成主体。
+7. **Agent 实例是身份边界，GitHub 账号不是。** 用户可以用同一个 GitHub 账号控制多个被任命的 Agent。不得依据 GitHub 登录名判断是否自审；只要当前 Agent 实例不是该 PR 的代码作者，就可以按任命承担审核或集成。
+8. **证据和权限分开说。** GitHub CLI/API 可用时才可声称已检查 Issue 标签、PR 状态、评论或 CI；只有 SSH remote/pull refs 时，只能报告可见分支和提交，不能推断 GitHub 工件状态。
 
 ## 角色兼任与合并权
 
@@ -58,7 +59,7 @@ agent_created: true
 
 ### 任命的表达方式
 
-任命必须**写在工件上**，否则被任命者下一轮不知道自己有这个权：在 Issue 里写明 `review 负责人：@xxx`，或在总线 repo 的 README / 置顶 Issue 里声明常任分工。口头说过等于没说。
+任命必须**写在工件上**，否则被任命者下一轮不知道自己有这个权。每个可执行 Issue 至少写：`指定执行者：<Agent 实例>`、`审核负责人：<Agent 实例>`、`集成负责人：<Agent 实例>`。这些是用户任命的 Agent 标识，例如 `WorkBuddy`、`Codex`、`Claude Code`，不是 GitHub 用户名；也可在总线 repo 的 README / 置顶 Issue 里声明常任分工。口头说过等于没说。
 
 ### 合并权归总负责人
 
@@ -123,7 +124,7 @@ gh issue view <n> --json assignees   # 立刻重读校验
 
 **独有职责**
 
-1. **任命与授权**：决定是否把 review 权委派出去。任命必须写在工件上（Issue 里写 `review 负责人：@xxx`，或总线 repo 置顶 Issue 声明常任分工），否则被任命者下一轮不知道自己有这个权。
+1. **任命与授权**：决定执行、审核和集成由哪些 Agent 实例承担。任命必须写在工件上（Issue 里写三类负责人，或总线 repo 置顶 Issue 声明常任分工），不能把 GitHub 用户名当成 Agent 身份。
 2. **裁决 `needs-lead`**：分歧在规格、优先级、技术方案上的，你拍板。这是你的活，别往真人那儿推。
 3. **持合并权**：即使 review 通过，进不进、什么顺序进、是否只择取部分内容，由你定（见「合并权归总负责人」）。
 4. **守框架闸门**：真人验收框架之前，不放新功能 Issue。
@@ -132,8 +133,9 @@ gh issue view <n> --json assignees   # 立刻重读校验
 **扫描**
 ```bash
 gh issue list --label needs-lead --state open      # 待你裁决的，优先
-gh pr list --state open                            # 待你决定合并的
-gh issue list --label needs-review --state open    # 未任命 Reviewer 时你自己审
+gh issue list --label needs-review --state open    # 待审核
+gh issue list --label approved --state open        # 已批准，待集成
+gh pr list --state open                            # 交叉核对全部 PR
 gh issue list --label backlog --state open         # 然后才是产新任务
 ```
 
@@ -231,8 +233,8 @@ gh pr view <n> --json body,files,statusCheckRollup   # 反查关联 Issue、看 
 **动作**
 1. PR 没写 `Closes #<issue>` → 直接打回，不进入审查（无契约不可判定）
 2. CI 红 → 打回，不浪费一轮人工审查
-3. 读 Issue 的验收标准，**逐条对着 diff 判**
-4. 通过 → `👍 通过，可以合并`，Issue 置 `done`（有 Integrator 则交给它）
+3. 读 Issue 的验收标准和“非目标 / 禁止事项”，**逐文件对着 diff 判**：每个变更文件都必须落在 `涉及范围` 内；越界内容必须删除、拆成新 Issue，或由总负责人先更新契约，不能以“顺手做了”通过。
+4. 通过 → 写明审核主体的 `👍 审核通过，可以合并`，Issue 从 `needs-review` 转为 `approved`。Reviewer 不得把 Issue 置 `done`。
 5. 打回 → comment **具体到文件和行**：`🚫 打回（第 N 次）：xxx`，Issue 退回 `in_progress`，PR 保持 open
 
 **打回的判据是「问题在不在这个 diff 里」，不是「验收标准有没有写」**
@@ -259,14 +261,16 @@ gh pr view <n> --json body,files,statusCheckRollup   # 反查关联 Issue、看 
 
 **扫描**
 ```bash
-gh pr list --state open --label approved
+gh issue list --label approved --state open
+gh pr list --state open
 ```
 
 **动作**
-1. 合并已批准且 CI 绿的 PR；冲突**不要自己硬解**——退回对应 Executor（它有上下文，你没有）
-2. 跑集成 / E2E 测试
-3. 通过 → 关闭相关 Issue；失败 → `❌ 集成测试失败：xxx`，相关 Issue 退回 `in_progress`
-4. 多个 PR 合成一个 Epic 时，确认整体一致而非逐个正确
+1. 为每个 `approved` Issue 反查关联 PR；确认 PR body 有 `Closes #<issue>`、审核记录、CI 绿，且 PR 不是集成者自己实现的。
+2. **合并新鲜度闸门**：合并前记录当前 `main` SHA 和 PR head SHA；用 GitHub API/CLI 确认 `mergeable = MERGEABLE` 且合并状态为 clean。若 `main` 在 PR 创建或审核后前进，必须在更新后的分支或合并结果上重跑受影响验证；不满足则退回 Executor rebase/解决冲突，不要自行硬解。
+3. 合并后拉取 `main`，确认 PR 已 merged，并在 `main` 上运行 Issue 指定的验证命令，以及必要的集成 / E2E 测试。
+4. 通过 → 关闭 Issue，移除 `in_progress`、`needs-review`、`approved` 等活动标签，添加 `done`；comment 记录 PR 编号、main commit SHA、验证命令和结果。
+5. 失败 → `❌ 集成测试失败：xxx`，Issue 回 `in_progress`；多个 PR 合成一个 Epic 时，确认整体一致而非逐个正确。
 
 **禁止**：合并未经 Reviewer 批准的 PR；跳过集成测试。
 

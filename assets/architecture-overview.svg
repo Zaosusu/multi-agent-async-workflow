@@ -39,7 +39,7 @@
 
   <rect x="40" y="150" width="600" height="80" rx="12" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
   <text class="th" x="340" y="172" text-anchor="middle" dominant-baseline="central" fill="#0C447C">GitHub Issues — 任务总线</text>
-  <text class="ts" x="340" y="194" text-anchor="middle" dominant-baseline="central" fill="#185FA5">backlog → ready → in_progress → needs-review → done</text>
+    <text class="ts" x="340" y="194" text-anchor="middle" dominant-baseline="central" fill="#185FA5">backlog → ready → in_progress → needs-review → approved → done</text>
   <text class="ts" x="340" y="214" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">异常分支: blocked · needs-research · needs-human</text>
 
   <path class="arr" d="M130 230 L130 280" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
