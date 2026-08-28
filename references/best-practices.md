@@ -13,6 +13,9 @@
 - [ ] 设定打回升级阈值（同一 PR 打回 N 次 → `needs-lead`；只有真人权限事项才 `needs-human`）
 - [ ] 将 `approved` 纳入标签和状态机，规定 Integrator 在 main 验证后才设置 `done`
 - [ ] 为合并建立新鲜度闸门：记录 main SHA 与 PR head SHA，检查 GitHub mergeable/CI；main 前进时在更新分支或合并结果上重跑受影响验证
+- [ ] 为 shared invariant 建立反向依赖传播矩阵，覆盖 open、closed、`done` 的直接/间接 Issue、受影响组件、已交付 artifact 和 open PR
+- [ ] 为每个下游 Issue 累计继承仍适用的上游 gate，并绑定当前 artifact 身份
+- [ ] 总负责人每轮扫描 `in_progress` / `ready` claim；pending 在 activation grace 内不回收，过期后双重重读仍无 active 且状态匹配才清理；active 可见后才派 Agent
 - [ ] 确定流水线拓扑（线性 / DAG / 环形 / 扇入扇出）
 - [ ] 设定初始 backlog（第一批 Issue）
 - [ ] 跑一轮验证：观察 Issue 流转是否顺畅
@@ -40,3 +43,9 @@
 18. **仅靠 SSH ref 报告 GitHub 状态** → 看见分支却误报 Issue、PR、CI 已检查。**解法：GitHub CLI/API 不可用时只报告远程分支和提交观察，不推断标签、评论、PR 状态或 CI。**
 19. **main 前进后仍按旧 PR 结论合并** → 旧 diff 虽然曾经通过，但与新 main 的组合未经验证。**解法：合并前记录 main SHA 与 PR head SHA，确认 GitHub `mergeable` 为可合并且状态 clean；main 已变化时更新分支或验证合并结果。**
 20. **审核只看功能、不逐文件看范围** → 未授权的数据模型、接口、配置或重构被作为“额外工作”带入。**解法：Reviewer 逐文件对照 Issue 的涉及范围和非目标；越界内容删除或另开 Issue，不以范围外产出换取通过。**
+21. **共享修复只改源 Issue** → 直接依赖看似更新了，间接依赖、closed / `done` 交付物和已有 open PR 仍按旧基线运行。**解法：把修复当成传播事务，遍历 open/closed 完整依赖图并交叉核对受影响文件；源 PR 在影响面矩阵验证后可先合并，只阻止未同步下游批准和合并，受影响的已交付物另开回归 Issue。**
+22. **Phase-N 只测本阶段** → 前序能力在新 artifact 中退化，但旧阶段曾通过被误当成当前结论。**解法：每个下游 Issue 累计继承全部仍适用 gate，并在当前 commit/build/config 上重跑；历史证据明确标为 `historical`。**
+23. **聊天派工和 Issue 认领并存** → 用户与总负责人各派一个 Agent，两个实现同时修改同一任务。**解法：GitHub Issue 是唯一认领源；使用 append-only 的 `pending -> active -> failed/abandoned` 两阶段 claim，active 可见后才启动 Agent。直接消息接单前也必须查 Issue。**
+24. **崩溃留下假锁** → pending、assignee 或 `in_progress` 写了一半，扫描器可能永久等待，也可能误杀正在激活的 winner。**解法：claim 带 pending lease 与 activation grace；grace 内不回收，过期后双重重读仍无 active 且状态匹配才终结；旧记录不删除。**
+25. **依赖关系不可见却假定传播完成** → API 权限不足或 Issue 没写依赖时，“搜不到”被误当成“没有”。**解法：记录已枚举范围，把已知下游置 `blocked`，源 Issue 打 `needs-lead`；补齐依赖图前不得宣称完成。**
+26. **解除传播阻断时凭感觉选状态** → 原本待审核的 PR 被退回 `ready`，或已失效的批准被直接恢复。**解法：置 `blocked` 前在矩阵记录唯一的阻断前状态；同步后只恢复该状态，缺失、非法或已过期时转 `needs-lead` 裁决。**

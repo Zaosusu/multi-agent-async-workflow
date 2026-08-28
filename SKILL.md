@@ -35,6 +35,9 @@ description: 多 Agent 异步协同工作流。两类场景使用：(1) 你被�
 6. **所有交接信息写在 Issue / PR 上。** 不要指望「下一个节点知道我刚才想了什么」——它是全新的上下文，只能看见工件。你没写下来的等于不存在。每个可执行 Issue 和 PR 都必须记录执行主体、审核主体、集成主体。
 7. **Agent 实例是身份边界，GitHub 账号不是。** 用户可以用同一个 GitHub 账号控制多个被任命的 Agent。不得依据 GitHub 登录名判断是否自审；只要当前 Agent 实例不是该 PR 的代码作者，就可以按任命承担审核或集成。
 8. **证据和权限分开说。** GitHub CLI/API 可用时才可声称已检查 Issue 标签、PR 状态、评论或 CI；只有 SSH remote/pull refs 时，只能报告可见分支和提交，不能推断 GitHub 工件状态。
+9. **GitHub Issue 是唯一认领源。** 聊天、邮件、Agent 间消息只能提醒或唤醒，不能形成第二份认领记录。任何人派 Agent 或收到直接派工后，都必须先读取 Issue 中的执行主体、claim lifecycle comment、assignee 和状态；已有未过期 active claim 时不得重复派工。
+10. **共享基线修复必须传播。** shared invariant、公共接口、协议或前序回归基线变化后，必须从 open、closed 和 `done` Issue 反向枚举直接和间接依赖、关联 open PR、已交付 artifact 与受影响组件，并同步新的 artifact 身份和累计回归 gate。源 PR 的影响面矩阵验证后可以先合并；同步完成前只禁止未同步下游 PR 批准和合并。
+11. **当前 artifact 才能承载当前结论。** 历史候选的日志、截图或测试只能标为历史证据；提交、构建哈希、版本或配置变化后，必须在当前 artifact 上重跑适用 gate，不得沿用旧结论。
 
 ## 角色兼任与合并权
 
@@ -107,14 +110,27 @@ Executor 拦不住（它只负责符合规格），CI 也拦不住（代码没 b
 
 ## 认领协议
 
-多个同角色节点可能同时扫到同一个 Issue。认领时：
+多个同角色节点、用户和总负责人可能同时看到同一个 Issue。GitHub 没有跨 comment、label、assignee 的事务，因此认领使用可恢复的两阶段协议。每次尝试生成唯一 `claim-id=<Agent实例>-<UTC时间>-<随机后缀>`，所有状态都用新 comment 追加，禁止编辑或删除旧 comment：
 
 ```bash
+gh issue comment <n> --body "🔒 claim-id=<id>; state=pending; actor=<Agent实例>; lease-until=<UTC>; activation-grace-until=<UTC>"
+gh issue view <n> --json labels,assignees,comments   # 竞选：最早的未过期 pending 胜出
 gh issue edit <n> --add-assignee @me --add-label in_progress --remove-label ready
-gh issue view <n> --json assignees   # 立刻重读校验
+gh issue comment <n> --body "🔒 claim-id=<id>; state=active; actor=<Agent实例>; lease-until=<UTC>"
+gh issue view <n> --json labels,assignees,comments   # active 可见后才派 Agent
 ```
 
-重读后如果 assignee 里有别人且不是你在首位 → **让给对方，去拿下一个**。宁可放弃也不要双份产出。
+claim 状态机是 `pending -> active`，pending 或 active 都可进入 `failed/abandoned`，终态不可重新激活；同一 claim-id 按时间顺序折叠最新合法事件，终态后的事件属于协议冲突，不能复活旧 claim。竞争 loser 只追加自己 claim 的 `state=abandoned reason=lost-race` 并停止，绝不移除共享 `ready/in_progress`，也不移除 winner 的 assignee；只有能证明某 assignee 由 loser 独占且 winner 不需要时才可清理该 assignee。派发失败必须追加 `claim-id=<id>; state=abandoned; reason=dispatch-failed`，再由恢复规则清理状态。每个 pending/active comment 必须带 `lease-until`，pending 还必须带 `activation-grace-until`；默认上限为 pending 10 分钟、activation grace 2 分钟、active 2 小时，项目可明确覆盖，超出上限按上限计算。active 执行者在到期前追加新的 `state=active` 续租。过期且无后续续租的 claim 可由扫描者追加 `abandoned reason=lease-expired` 后接管；原 Agent 恢复时必须重读，发现自己不再 active 就停止。
+
+每轮不仅扫描 `ready`，还扫描 `in_progress`。`in_progress` 只有 pending 而没有 active 是 winner 的合法激活窗口，scanner 不得立即清理；只有 pending lease 和 activation grace 都到期后，连续两次重读仍无 active、Issue 仍匹配该 claim 的阶段二状态，才追加带第二次读取 comment ID 的 `failed reason=activation-interrupted`。写后第三次重读若发现该快照之后出现 active，或 active 在 pending 终结后才写入，都是迟到写冲突：转 `needs-lead` 且不清任何状态；否则才按恢复规则回滚。也要回收 active lease 已过期的 `in_progress`，以及只有过期/终态 claim 的 `ready` 残留。任何清理和接管前后都重读 Issue；无法证明状态归属时转 `needs-lead`，不得猜。完整恢复和竞争规则见 `references/dependency-propagation.md`。
+
+共享依赖的完整传播事务见 `references/dependency-propagation.md`。处理 shared invariant、阶段基线或受上游变化影响的 Issue / PR 时必须读取它。
+
+传播矩阵统一使用以下 schema：
+
+| 传播源 | 目标 | 依赖路径 | 受影响组件 | 阻断前状态 | 当前 artifact | 关联 open PR | inherited gate | 证据 | 同步状态 |
+|--------|------|----------|------------|------------|-----------------|--------------|----------------|------|----------|
+| `[#source / PR]` | `[#target / PR / regression Issue]` | `[#source -> #target]` | `[component]` | `[ready/in_progress/needs-review/approved/未阻断]` | `[branch@sha / build digest]` | `[PR #... / 无]` | `[G-id / not-applicable]` | `[URL/path + SHA / pending]` | `pending/synced/unknown/not-applicable` |
 
 ---
 
@@ -129,6 +145,8 @@ gh issue view <n> --json assignees   # 立刻重读校验
 3. **持合并权**：即使 review 通过，进不进、什么顺序进、是否只择取部分内容，由你定（见「合并权归总负责人」）。
 4. **守框架闸门**：真人验收框架之前，不放新功能 Issue。
 5. **认识自己的盲区**：你定规格又验收，误解会无人拦阻地传下去。反复返工、同类打回时**先怀疑自己的规格**，而不是实施质量。
+6. **主动补齐执行者**：每轮先扫描 `in_progress` 和 `ready` 的 claim lifecycle。pending 在 activation grace 结束前保持合法且不得回收；grace 到期后也须双重重读仍无 active、状态仍匹配才能终结和清理。failed / abandoned 只作历史。完成恢复后，再按两阶段协议激活新 claim，active 可见后才启动 Agent。
+7. **主持依赖传播**：shared invariant 修复或变更后，按 `references/dependency-propagation.md` 建立传播矩阵，覆盖 open、closed、`done` 的直接/间接依赖、关联 open PR 和已交付 artifact；受影响的已交付物另开回归 Issue。无法可靠枚举时打 `needs-lead` 并保留下游合并阻断，不能宣称矩阵已验证或同步完成。
 
 **扫描**
 ```bash
@@ -136,6 +154,8 @@ gh issue list --label needs-lead --state open      # 待你裁决的，优先
 gh issue list --label needs-review --state open    # 待审核
 gh issue list --label approved --state open        # 已批准，待集成
 gh pr list --state open                            # 交叉核对全部 PR
+gh issue list --label in_progress --state open     # 回收无 active claim / lease 过期的任务
+gh issue list --label ready --state open           # 找无有效认领、可主动任命的任务
 gh issue list --label backlog --state open         # 然后才是产新任务
 ```
 
@@ -159,8 +179,10 @@ gh issue list --label backlog --state open
 1. 把模糊需求拆成独立 Issue，粒度控制在 **1-2 小时可完成**（拆不动说明还没想清）
 2. 读相关代码，在 Issue 里写清 `涉及范围`（具体文件），这是下游避免冲突的依据
 3. 套用 `assets/issue-template.md`，**验收标准必须可判定**——「性能更好」不行，「P99 < 200ms」才行
-4. 标注依赖关系和优先级；预分配执行者（填 `指定执行者`）可以彻底避免认领竞争
-5. 置 `ready` 交出
+4. 标注直接依赖、受影响组件和 artifact 身份；从所有直接与间接上游累计继承仍适用的回归 gate，不得只抄最近一层依赖
+5. 若上游修复 shared invariant，建立并维护传播矩阵；枚举 open、closed、`done` 下游及 open PR，为受影响已交付物开回归 Issue，未同步活动下游保持合并阻断
+6. 标注优先级；预分配执行者（填 `指定执行者`）可以减少认领竞争，但真正认领仍以 Issue 中未过期 active claim 和 `in_progress` 为准
+7. 置 `ready` 交出
 
 **禁止**
 - 同时把**文件范围重叠**的多个 Issue 置 `ready`——并行实施必然冲突
@@ -202,8 +224,9 @@ gh issue list --label ready --state open        # 无人认领的
 1. 按认领协议锁定 Issue
 2. 开分支：`<你的节点名>/<issue号>-<slug>`，例 `executor-a/128-fix-retry-backoff`
 3. 按 Issue 实现。**验收标准写不明确 / 前后矛盾 → 不要硬猜**：comment 问题 + 打 `needs-clarification` 退回 `ready` 给 Planner
-4. 自测通过后提 PR，套用 `assets/pr-template.md`，**body 必须写 `Closes #<issue号>`**（Reviewer 靠它反查契约，缺了 PR 就是无从判定的 diff）
-5. 收尾**两件事缺一不可**：
+4. 在**当前 PR head artifact** 上执行本 Issue 自身验收和全部适用 inherited gates；历史候选证据只能作背景，不能代替本次结果
+5. 自测通过后提 PR，套用 `assets/pr-template.md`，**body 必须写 `Closes #<issue号>`**（Reviewer 靠它反查契约，缺了 PR 就是无从判定的 diff）
+6. 收尾**两件事缺一不可**：
 ```bash
 gh pr create --title "..." --body "Closes #128\n\n..."
 gh issue comment 128 --body "✅ 已提交 PR #256"
@@ -234,8 +257,9 @@ gh pr view <n> --json body,files,statusCheckRollup   # 反查关联 Issue、看 
 1. PR 没写 `Closes #<issue>` → 直接打回，不进入审查（无契约不可判定）
 2. CI 红 → 打回，不浪费一轮人工审查
 3. 读 Issue 的验收标准和“非目标 / 禁止事项”，**逐文件对着 diff 判**：每个变更文件都必须落在 `涉及范围` 内；越界内容必须删除、拆成新 Issue，或由总负责人先更新契约，不能以“顺手做了”通过。
-4. 通过 → 写明审核主体的 `👍 审核通过，可以合并`，Issue 从 `needs-review` 转为 `approved`。Reviewer 不得把 Issue 置 `done`。
-5. 打回 → comment **具体到文件和行**：`🚫 打回（第 N 次）：xxx`，Issue 退回 `in_progress`，PR 保持 open
+4. 检查依赖传播矩阵、当前 artifact 身份和 inherited gates。审核源 shared-invariant PR 时，矩阵影响面已可靠枚举、逐目标行已建立且无 `unknown` 即可继续审批，未同步下游只阻断对应下游，不反向阻塞源 PR。审核下游 PR 时，其矩阵行未同步、上游有未纳入当前 head 的新提交或证据属于旧 artifact，先记录阻断前状态再置 `blocked`；不得批准。
+5. 通过 → 写明审核主体的 `👍 审核通过，可以合并`，Issue 从 `needs-review` 转为 `approved`。Reviewer 不得把 Issue 置 `done`。
+6. 打回 → comment **具体到文件和行**：`🚫 打回（第 N 次）：xxx`，Issue 退回 `in_progress`，PR 保持 open
 
 **打回的判据是「问题在不在这个 diff 里」，不是「验收标准有没有写」**
 
@@ -267,10 +291,11 @@ gh pr list --state open
 
 **动作**
 1. 为每个 `approved` Issue 反查关联 PR；确认 PR body 有 `Closes #<issue>`、审核记录、CI 绿，且 PR 不是集成者自己实现的。
-2. **合并新鲜度闸门**：合并前记录当前 `main` SHA 和 PR head SHA；用 GitHub API/CLI 确认 `mergeable = MERGEABLE` 且合并状态为 clean。若 `main` 在 PR 创建或审核后前进，必须在更新后的分支或合并结果上重跑受影响验证；不满足则退回 Executor rebase/解决冲突，不要自行硬解。
-3. 合并后拉取 `main`，确认 PR 已 merged，并在 `main` 上运行 Issue 指定的验证命令，以及必要的集成 / E2E 测试。
-4. 通过 → 关闭 Issue，移除 `in_progress`、`needs-review`、`approved` 等活动标签，添加 `done`；comment 记录 PR 编号、main commit SHA、验证命令和结果。
-5. 失败 → `❌ 集成测试失败：xxx`，Issue 回 `in_progress`；多个 PR 合成一个 Epic 时，确认整体一致而非逐个正确。
+2. **依赖传播闸门**：源 shared-invariant PR 的影响面和逐目标矩阵已可靠建立且没有 `unknown`，即可继续合并，`pending` 下游不得反向卡住源 PR。下游 PR 则必须确认所有直接/间接上游 shared invariant 已映射到 inherited gates，且自身矩阵行没有 `pending/unknown`；未完成时先记录阻断前状态，再移除其他活动标签、置 `blocked`。某行一旦达到 `synced/not-applicable`，立即只恢复该目标记录的状态，不等待其他行；状态缺失、非法或已过期则转 `needs-lead`。
+3. **合并新鲜度闸门**：合并前记录当前 `main` SHA 和 PR head SHA；用 GitHub API/CLI 确认 `mergeable = MERGEABLE` 且合并状态为 clean。若 `main` 在 PR 创建或审核后前进，必须在更新后的分支或合并结果上重跑受影响验证；不满足则退回 Executor rebase/解决冲突，不要自行硬解。
+4. 合并后拉取 `main`，确认 PR 已 merged，并在**合并后的当前 artifact** 上运行 Issue 自身验证、全部适用 inherited gates，以及必要的集成 / E2E 测试。
+5. 通过 → 关闭 Issue，移除 `in_progress`、`needs-review`、`approved`、`blocked` 等活动标签，添加 `done`；comment 记录 PR 编号、artifact 身份、main commit SHA、验证命令和结果。
+6. 失败 → `❌ 集成测试失败：xxx`，Issue 回 `in_progress`；多个 PR 合成一个 Epic 时，确认整体一致而非逐个正确。
 
 **禁止**：合并未经 Reviewer 批准的 PR；跳过集成测试。
 
@@ -296,6 +321,7 @@ gh pr list --state open
 | `assets/comment-protocol.md` | 各节点 comment 话术 |
 | `references/issue-protocol.md` | 完整标签体系与状态机 |
 | `references/pr-review-protocol.md` | 交付与审核闭环细则 |
+| `references/dependency-propagation.md` | shared invariant 的依赖传播、累计回归 gate 与唯一认领协议 |
 | `references/setup.md` | 从零搭总线（建 label、配模板、编排节点） |
 | `references/rationale.md` | 为什么这么设计、为什么不用共享上下文的 agent team |
 | `references/best-practices.md` | 落地检查清单与 15 个坑 |

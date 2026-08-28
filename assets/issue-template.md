@@ -16,6 +16,14 @@
 - [ ] 测试用例 A 通过
 - [ ] 不影响现有功能 B
 
+## 当前 artifact 身份
+- repo：`[owner/name]`
+- base：`[branch]@[sha]`
+- head：`[branch]@[sha / 未开始]`
+- build：`[package/version/digest / not-built]`
+- runtime config：`[不含密钥的版本或 digest]`
+- 证据生成时间：`[timestamp / pending]`
+
 ## 优先级
 P0 / P1 / P2
 
@@ -33,6 +41,16 @@ P0 / P1 / P2
 
 ## 依赖
 - [必须先完成的 Issue；没有写「无」]
+
+## 累计 inherited gates
+| Gate ID | 来源 Issue / PR | 适用范围 | 验证命令 / 操作 | 预期信号 | 当前 artifact 证据 | 状态 |
+|---------|-----------------|----------|-------------------|----------|---------------------|------|
+| `[G-id]` | `[#issue / PR]` | `[component]` | `[command]` | `[expected]` | `[URL/path + SHA]` | `pending/pass/not-applicable` |
+
+## 依赖传播矩阵
+| 传播源 | 目标 | 依赖路径 | 受影响组件 | 阻断前状态 | 当前 artifact | 关联 open PR | inherited gate | 证据 | 同步状态 |
+|--------|------|----------|------------|------------|-----------------|--------------|----------------|------|----------|
+| `[#source / PR]` | `[#target / PR / regression Issue]` | `[#source -> #target]` | `[component]` | `[ready/in_progress/needs-review/approved/未阻断]` | `[branch@sha / build digest]` | `[PR #... / 无]` | `[G-id / not-applicable]` | `[URL/path + SHA / pending]` | `pending/synced/unknown/not-applicable` |
 
 ## 非目标 / 禁止事项
 - [本 Issue 明确不做的内容]

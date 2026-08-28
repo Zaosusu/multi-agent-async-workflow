@@ -156,3 +156,17 @@ Integrator 处理 `approved`，而不是 Reviewer 通过后直接关闭 Issue。
 4. 无法读取 GitHub API 状态时不得宣称 PR 可安全合并；仅有 SSH refs 只能用于观察提交，不能代替 mergeable/CI 检查。
 
 合并后必须重新拉取 `main`，确认 PR 已 merged，再在 `main` 上执行规定验证；在 Issue 留下合并前 `main` SHA、PR head SHA、合并后的 main commit SHA、验证命令和结果。最后移除活动标签并添加 `done`。只有这一步完成，交付才真正结束。
+
+## 7. shared invariant 的传播与累计门禁
+
+PR 改变 shared invariant 或前序基线时，普通的 `Issue -> PR -> review` 不足以证明可合并。总负责人必须按 `dependency-propagation.md` 从 open、closed 和 `done` Issue 中反向枚举全部直接/间接依赖、关联 open PR、已交付 artifact 和受影响组件。
+
+Reviewer 在批准前逐项确认：
+
+1. PR 记录精确的 base/head/build artifact 身份，证据属于当前 head，而不是历史候选。
+2. Issue 的累计 inherited gates 包含所有仍适用的直接和间接上游 gate。
+3. 传播矩阵覆盖所有受影响下游，包括 closed / `done` 的已交付 artifact、在施工 Issue 和关联 open PR；每行记录依赖路径、阻断前状态、当前 artifact、gate、证据和同步状态。
+4. 审核源 shared-invariant PR 时，确认影响面已可靠枚举、每个目标都有矩阵行且不存在 `unknown`。满足后源 PR 可按自身验收批准和合并，下游行允许为 `pending`，不得因下游尚未同步反向阻塞源修复。
+5. 审核下游 PR 时，其对应行必须为 `synced` 或由总负责人批准的 `not-applicable`；下游 head 必须包含上游修复并重跑累计 gate。只写“应该不受影响”不能解除阻断。
+
+任何下游目标仍为 `pending/unknown` 时，只阻断该目标及其下游 PR：先在矩阵记录阻断前状态，再移除其他活动标签并置 `blocked`。Integrator 必须再次执行同一检查；即使该下游 PR CI 为绿，也不得绕过传播门禁。某个目标行一达到 `synced` 或获批 `not-applicable`，就立即只恢复该行记录的阻断前状态，不等待其他目标；记录缺失、非法或已经过期时转 `needs-lead`，不得猜测。所有行完成后的 source 汇总仅关闭传播任务，不承担批量解除。
