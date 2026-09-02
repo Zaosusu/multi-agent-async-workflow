@@ -17,6 +17,7 @@ gh label create blocked            --color b60205 --description "阻塞"
 gh label create needs-lead         --color 5319e7 --description "需总负责人裁决（规格/优先级/方案分歧）"
 gh label create needs-human        --color e11d21 --description "需真人决定（花钱/对外承诺/法律权限/业务方向）"
 gh label create approved           --color 0e8a16 --description "已批准，待合并"
+gh label create done               --color 0e8a16 --description "已完成并合并（main 验证通过）"
 ```
 
 `needs-lead` 和 `needs-human` **必须分开**：前者总负责人自己就能拍板，后者必须到真人。合成一个的后果是两头都错——本该一句话解决的分歧堆着等真人，或者 AI 替你决定了它不该决定的事。

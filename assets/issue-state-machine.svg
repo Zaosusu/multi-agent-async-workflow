@@ -40,19 +40,22 @@
   <path class="reject" d="M590 93 Q480 150 335 93" marker-end="url(#arrow)"/>
   <text class="ts" x="505" y="141" text-anchor="middle" fill="#993C1D">集成发现问题</text>
 
-  <rect x="110" y="205" width="130" height="44" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
-  <text class="th" x="175" y="227" text-anchor="middle" dominant-baseline="central" fill="#633806">needs-research</text>
-  <rect x="290" y="205" width="110" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
-  <text class="th" x="345" y="227" text-anchor="middle" dominant-baseline="central" fill="#712B13">blocked</text>
-  <rect x="450" y="205" width="110" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
-  <text class="th" x="505" y="227" text-anchor="middle" dominant-baseline="central" fill="#712B13">needs-lead</text>
-  <rect x="610" y="205" width="120" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
-  <text class="th" x="670" y="227" text-anchor="middle" dominant-baseline="central" fill="#712B13">needs-human</text>
+  <rect x="70" y="205" width="125" height="44" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text class="th" x="132" y="227" text-anchor="middle" dominant-baseline="central" fill="#633806">needs-research</text>
+  <rect x="205" y="205" width="160" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text class="th" x="285" y="227" text-anchor="middle" dominant-baseline="central" fill="#712B13">needs-clarification</text>
+  <rect x="375" y="205" width="95" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text class="th" x="422" y="227" text-anchor="middle" dominant-baseline="central" fill="#712B13">blocked</text>
+  <rect x="480" y="205" width="110" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text class="th" x="535" y="227" text-anchor="middle" dominant-baseline="central" fill="#712B13">needs-lead</text>
+  <rect x="600" y="205" width="120" height="44" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text class="th" x="660" y="227" text-anchor="middle" dominant-baseline="central" fill="#712B13">needs-human</text>
 
-  <path class="dash" d="M200 93L175 205 M175 205Q155 145 200 93" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-  <path class="dash" d="M335 93V205 M345 205Q300 150 335 93" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-  <path class="dash" d="M375 93Q440 145 505 205 M505 205Q420 155 370 93" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
-  <path class="dash" d="M390 93Q530 145 670 205 M670 205Q510 155 385 93" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="dash" d="M200 92L132 205 M132 205Q160 150 200 92" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="dash" d="M335 92L285 205 M285 205Q310 150 335 92" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="dash" d="M335 92L422 205 M422 205Q380 150 335 92" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="dash" d="M390 92L535 205 M535 205Q460 150 390 92" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <path class="dash" d="M390 92L660 205 M660 205Q470 150 390 92" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
 
   <text class="ts" x="430" y="292" text-anchor="middle" fill="#5F5E5A">传播阻断恢复矩阵记录状态；其他异常按协议流转；done 仅在 main 验证通过后设置</text>
   <text class="ts" x="430" y="320" text-anchor="middle" fill="#888">实线 = 正常流转 · 虚线 = 异常分支 · 橙色 = 退回实施</text>

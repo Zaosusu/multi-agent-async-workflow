@@ -20,7 +20,7 @@ description: 多 Agent 异步协同工作流。两类场景使用：(1) 你被�
 
 1. **确认总线 repo**：用户指定的 repo，或当前 repo。不确定就问，不要猜。
 2. **确认你是哪个节点**：用户明确指派的角色。**没有指派就问，不要自己挑。** 角色决定你的权限边界，猜错会越权。
-3. **确认并补齐标签**：`gh label list` 检查这 9 个标签——`backlog`、`ready`、`in_progress`、`needs-review`、`approved`、`done`、`needs-lead`、`blocked`、`needs-human`。**缺了就自己建，不要因为缺标签就叫停**：这 9 个是协议的固定状态集，不是用户自定义项，建标签的颜色和描述按 `references/setup.md` 第 2 节执行。补齐标签属于总线自愈，是节点的责任。只有真建不了（仓库不存在 / 无 push 权限 / `gh` 未认证）才停下报告用户。
+3. **确认并补齐标签**：`gh label list` 检查这 11 个标签——`backlog`、`ready`、`in_progress`、`needs-review`、`approved`、`done`、`needs-research`、`needs-clarification`、`blocked`、`needs-lead`、`needs-human`。**缺了就自己建，不要因为缺标签就叫停**：这 11 个是协议的固定状态集，不是用户自定义项，建标签的颜色和描述按 `references/setup.md` 第 2 节执行。补齐标签属于总线自愈，是节点的责任。只有真建不了（仓库不存在 / 无 push 权限 / `gh` 未认证）才停下报告用户。
 4. **确认本轮边界**：默认**只做一个 pass**——扫队列、处理你能处理的任务、流转状态、报告、结束。除非用户明确要求常驻，否则不要自己开无限循环。
 
 ## 通用硬规则（所有节点）
