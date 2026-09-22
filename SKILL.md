@@ -20,7 +20,7 @@ description: 多 Agent 异步协同工作流。两类场景使用：(1) 你被�
 
 1. **确认总线 repo**：用户指定的 repo，或当前 repo。不确定就问，不要猜。
 2. **确认你是哪个节点**：用户明确指派的角色。**没有指派就问，不要自己挑。** 角色决定你的权限边界，猜错会越权。
-3. **确认并补齐标签**：`gh label list` 检查这 11 个标签——`backlog`、`ready`、`in_progress`、`needs-review`、`approved`、`done`、`needs-research`、`needs-clarification`、`blocked`、`needs-lead`、`needs-human`。**缺了就自己建，不要因为缺标签就叫停**：这 11 个是协议的固定状态集，不是用户自定义项，建标签的颜色和描述按 `references/setup.md` 第 2 节执行。补齐标签属于总线自愈，是节点的责任。只有真建不了（仓库不存在 / 无 push 权限 / `gh` 未认证）才停下报告用户。
+3. **确认并补齐标签**：`gh label list` 检查这 14 个标签——11 个协议状态标签 `backlog`、`ready`、`in_progress`、`needs-review`、`approved`、`done`、`needs-research`、`needs-clarification`、`blocked`、`needs-lead`、`needs-human`，加 3 个来源标签 `source:human`、`source:ai`、`human-only`。**缺了就自己建，不要因为缺标签就叫停**：这 14 个是协议的固定标签集，不是用户自定义项，建标签的颜色和描述按 `references/setup.md` 第 2 节执行。补齐标签属于总线自愈，是节点的责任。只有真建不了（仓库不存在 / 无 push 权限 / `gh` 未认证）才停下报告用户。
 4. **确认本轮边界**：默认**只做一个 pass**——扫队列、处理你能处理的任务、流转状态、报告、结束。除非用户明确要求常驻，否则不要自己开无限循环。
 
 ## 通用硬规则（所有节点）
@@ -38,6 +38,22 @@ description: 多 Agent 异步协同工作流。两类场景使用：(1) 你被�
 9. **GitHub Issue 是唯一认领源。** 聊天、邮件、Agent 间消息只能提醒或唤醒，不能形成第二份认领记录。任何人派 Agent 或收到直接派工后，都必须先读取 Issue 中的执行主体、claim lifecycle comment、assignee 和状态；已有未过期 active claim 时不得重复派工。
 10. **共享基线修复必须传播。** shared invariant、公共接口、协议或前序回归基线变化后，必须从 open、closed 和 `done` Issue 反向枚举直接和间接依赖、关联 open PR、已交付 artifact 与受影响组件，并同步新的 artifact 身份和累计回归 gate。源 PR 的影响面矩阵验证后可以先合并；同步完成前只禁止未同步下游 PR 批准和合并。
 11. **当前 artifact 才能承载当前结论。** 历史候选的日志、截图或测试只能标为历史证据；提交、构建哈希、版本或配置变化后，必须在当前 artifact 上重跑适用 gate，不得沿用旧结论。
+
+## 任务来源与执行者
+
+标签集里另有一组**来源标签**，用来回答「这个任务是谁提的、该谁执行」。来源决定执行者，不要把两种任务混在一个池子里抢：
+
+| 来源标签 | 含义 | 认领者 | 交付与验收 |
+|----------|------|--------|-----------|
+| `source:human` | 真人提出的需求 | **人类** | 人类交付、人类验收 |
+| `source:ai` | AI 提出的工程任务 | **Agent** | Agent 认领、Agent 交叉审核 |
+| `human-only` | 执行到此需先找人类拍板 | Agent 可认领推进 | 涉及主观判断的环节必须转交人类 |
+
+规则：
+
+- **真人提的需求 → 人类认领、人类交付、人类验收。** Agent 不要抢人类该做的事。
+- **AI 提的任务 → Agent 认领、Agent 交叉审核。** 仍受「不能审、不能合并自己写的代码」约束。
+- **`human-only` 不是「禁止认领」。** 它表示「执行到此需先找人类拍板」：Agent 可以认领并推进，但涉及审美、价值观、主观判断、不可由 Agent 单方定稿的环节，必须转交人类决定。与 `needs-human` 的区别是：`needs-human` 是整件事必须真人决定（花钱 / 对外承诺 / 法律权限 / 业务方向），`human-only` 是任务可做、但某一步的定稿权在人类。
 
 ## 角色兼任与合并权
 

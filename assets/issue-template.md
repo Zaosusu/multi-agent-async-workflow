@@ -27,6 +27,9 @@
 ## 优先级
 P0 / P1 / P2
 
+## 来源
+[`source:human`（真人需求，人类认领/交付/验收）或 `source:ai`（AI 工程任务，Agent 认领/交叉审核）；若执行到某步必须先找人类拍板，另加 `human-only`]
+
 ## 标签
 `enhancement` `area:xxx` `draft`
 

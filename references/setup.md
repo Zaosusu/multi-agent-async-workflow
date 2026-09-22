@@ -18,9 +18,14 @@ gh label create needs-lead         --color 5319e7 --description "需总负责人
 gh label create needs-human        --color e11d21 --description "需真人决定（花钱/对外承诺/法律权限/业务方向）"
 gh label create approved           --color 0e8a16 --description "已批准，待合并"
 gh label create done               --color 0e8a16 --description "已完成并合并（main 验证通过）"
+gh label create source:human       --color 0E8A16 --description "真人提出的需求 —— 人类认领、人类交付、人类验收"
+gh label create source:ai          --color 5319E7 --description "AI 提出的工程任务 —— Agent 认领、Agent 交叉审核"
+gh label create human-only         --color 1D76DB --description "执行到此需先找人类拍板 —— 涉及审美/价值观/主观判断，不可由 Agent 单方定稿"
 ```
 
 `needs-lead` 和 `needs-human` **必须分开**：前者总负责人自己就能拍板，后者必须到真人。合成一个的后果是两头都错——本该一句话解决的分歧堆着等真人，或者 AI 替你决定了它不该决定的事。
+
+后 3 个是**来源标签**，回答「任务是谁提的、该谁执行」：`source:human` 的需求由人类认领、交付、验收；`source:ai` 的任务由 Agent 认领、交叉审核；`human-only` 表示 Agent 可认领推进，但执行到涉及审美/价值观/主观判断的环节必须转交人类拍板（它不是「禁止认领」）。
 
 ## 3. 放模板到 GitHub 认的位置
 

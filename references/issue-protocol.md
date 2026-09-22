@@ -81,12 +81,25 @@ Integrator-A / 总负责人
 | `ready` | 待分配 | → `in_progress` |
 | `in_progress` | 实施中 | → `needs-review` / `blocked` |
 | `needs-research` | 需研究 | → `ready` |
+| `needs-clarification` | 验收标准不清，退回 Planner | → `ready` |
 | `needs-review` | 待审核 | → `approved` / `in_progress` |
 | `approved` | 审核通过，待集成负责人合并和 main 验证 | → `done` / `in_progress` |
 | `blocked` | 阻塞；传播阻断进入前必须在矩阵记录唯一的阻断前状态 | → 传播阻断恢复记录状态（缺失、非法或已过期则 → `needs-lead`）；其他阻塞解除后 → `ready` |
 | `needs-lead` | 需总负责人裁决（规格/优先级/方案分歧） | → `ready` / `in_progress` |
 | `needs-human` | 需真人决定（花钱/对外承诺/法律权限/业务方向） | → `ready`（决策后） |
 | `done` | 已完成 | 终态 |
+
+以上 11 个是**协议状态标签**。另有一组**来源标签**，回答「这个任务是谁提的、该谁执行」：
+
+| 来源标签 | 含义 | 认领者 | 交付与验收 |
+|----------|------|--------|-----------|
+| `source:human` | 真人提出的需求 | **人类** | 人类交付、人类验收 |
+| `source:ai` | AI 提出的工程任务 | **Agent** | Agent 认领、Agent 交叉审核 |
+| `human-only` | 执行到此需先找人类拍板 | Agent 可认领推进 | 涉及主观判断的环节必须转交人类 |
+
+> **来源决定执行者**：真人提的需求由人类认领、交付、验收，Agent 不要抢人类该做的事；AI 提的任务由 Agent 认领、交叉审核，仍受「不能审、不能合并自己写的代码」约束。
+>
+> `human-only` **不是「禁止认领」**，而是「执行到此需先找人类拍板」。与 `needs-human` 的区别：`needs-human` 是整件事必须真人决定（花钱 / 对外承诺 / 法律权限 / 业务方向），`human-only` 是任务可做、但某一步的定稿权在人类（如审美、价值观等主观判断）。
 
 > `needs-lead` 与 `needs-human` 不可合并成一个：前者总负责人自己拍板，后者必须到真人。混用会导致本该一句话解决的分歧堆着等人，或 AI 替真人做了它不该做的决定。
 
