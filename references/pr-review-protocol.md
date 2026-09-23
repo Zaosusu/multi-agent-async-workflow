@@ -90,6 +90,36 @@ C 只做一件事：**对着 Issue 的验收标准、涉及范围和非目标逐
 
 这个区分很重要——只按验收标准逐条打勾的 Reviewer 会放过 A 当初没预料到的真 bug，而那恰恰是独立 review 最该抓的东西。
 
+### 审核增量 diff 的寻址规范（rebase 后必须改口径）
+
+打回后 Executor 追加修复，Reviewer 要审「**这次修了什么**」，不是重审整个 PR。报增量范围时有个**必踩的坑**：
+
+| 场景 | 错误写法 | 正确写法 |
+|------|---------|---------|
+| Executor 在旧 head 上**追加 commit**（未 rebase） | — | `旧head..新head` ✅ |
+| Executor **rebase 到新 main 后再追加 commit** | `旧head..新head` ❌ | `rebase后的原commit..新head` ✅ |
+
+**原因**：rebase 会重写历史，**旧 head 不再是新 head 的祖先**。此时 `旧head..新head` 变成「两个分叉点的对称差」，会把 main 上**别人的合并**全算进来——文件数虚高、看着像夹带无关改动，实际上一次都没碰过。
+
+**两条落地规则**：
+
+1. **Executor 报增量时**：先 `git log --oneline` 确认 `新head^`（父 commit）是什么，用 **`父commit..新head`**；不要凭记忆写旧 head。
+2. **Reviewer 见范围异常时**：不要直接判「夹带」，先自己跑 `git diff --name-status <可疑范围>` 与 `git show --stat <head>` 对照——**以 `git show --stat HEAD`（单个 commit 的真实改动）为准**，它是唯一不受 rebase 影响的口径。
+3. **Executor 若明确 rebase 过**，应在 PR 评论里直接给出父 commit 哈希，省掉 Reviewer 一次猜。
+
+**另一个常见口径混淆**（Reviewer 也要分清）：
+
+| 命令 | 含义 | 是否适合判「本次修复」 |
+|------|------|----------------------|
+| `git show --stat HEAD` | 仅该 commit | ✅ 最准 |
+| `父commit..HEAD` | 本次修复（含该 commit） | ✅ 准 |
+| `main...HEAD` | 整条分支（原功能 + 修复） | ❌ 文件集合可能相同但行数含原功能 |
+| `旧head..新head`（rebase 后） | 混入 main 演进 | ❌ 完全错 |
+
+> 实测教训（2026-09-23）：rebase 后误报 `ac220b3..10e9a4c`，显示 10 文件；
+> 真实修复增量是 `dc2a256..10e9a4c` 的 **5 文件 / +30 −7**。同一轮里 Reviewer 也把文件数数成了 7（实际 5）
+> ⇒ **双方都要以 `git show --stat` 为准，而不是各自口算范围。**
+
 ## 3. 打回环与升级
 
 ```
