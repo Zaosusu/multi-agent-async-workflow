@@ -5,6 +5,7 @@
 - 新建 Issue：`📋 新建 Issue #[number]，背景：xxx`
 - 更新需求：`📝 更新 Issue #[number]：xxx`
 - 分配主体：`📌 任命：执行主体 xxx；审核主体 yyy；集成主体 zzz`
+- 指定执行者：`📌 指定执行者：<Agent 实例>（账号 <GitHub 账号>）；保留 ready 待其认领，不代置 in_progress`（编排，非认领；`source:human`/`human-only` 下若被指定者非真人，须同时补「先经人类确认 + 告知接活/验收」）
 - 认领竞选：`🔒 claim-id=<id>; state=pending; actor=<Agent实例>; lease-until=<UTC>; activation-grace-until=<UTC>`
 - 认领激活：`🔒 claim-id=<id>; state=active; actor=<Agent实例>; lease-until=<UTC>`（该 comment、assignee 和 `in_progress` 均可见后才派 Agent）
 - 认领续租：`🔒 claim-id=<id>; state=active; actor=<Agent实例>; lease-until=<UTC>; reason=renewal`

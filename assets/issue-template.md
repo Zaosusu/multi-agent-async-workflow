@@ -34,7 +34,10 @@ P0 / P1 / P2
 `enhancement` `area:xxx` `draft`
 
 ## 指定执行者
-[用户任命的 Agent 实例，例如 Executor-A；不是 GitHub 用户名]
+[用户任命的 Agent 实例，例如 Executor-A；不是 GitHub 用户名。
+ 若已在 GitHub 上指派，同时写「账号 X 的实例 Y」——`assignee` 只能填账号，工件里记实例。
+ 注意：指定 ≠ 认领。指定后保留 `ready`，被指定者仍走 claim 协议；不要因「已指定」就置 `in_progress`。
+ `source:human`/`human-only` 下：被指定者是真人 ⇒ 指派即已拍板，可省告知；是纯 Agent 账号 ⇒ 仍须先经人类确认。]
 
 ## 审核负责人
 [用户任命的独立 Agent 实例；不得是本 PR 的代码作者]

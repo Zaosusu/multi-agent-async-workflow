@@ -10,6 +10,8 @@
 - [ ] 配置各节点 Session：Prompt + 触发频率/方式
 - [ ] 确认 Reviewer 与 Executor 是独立的 **Agent 实例**（不共享实施推理）；GitHub 账号可共用
 - [ ] 在 Issue/PR 记录执行主体、审核主体、集成主体
+- [ ] 明确「指定执行者」= 编排（`assignee`，保留 `ready`）≠ 认领（claim + `in_progress`）；被指定者仍走 claim 协议
+- [ ] `source:human` / `human-only` 指定执行者时，先判被指定者是不是真人：真人 ⇒ 可省告知；纯 Agent 账号 ⇒ 仍须先经人类确认
 - [ ] 设定打回升级阈值（同一 PR 打回 N 次 → `needs-lead`；只有真人权限事项才 `needs-human`）
 - [ ] 将 `approved` 纳入标签和状态机，规定 Integrator 在 main 验证后才设置 `done`
 - [ ] 为合并建立新鲜度闸门：记录 main SHA 与 PR head SHA，检查 GitHub mergeable/CI；main 前进时在更新分支或合并结果上重跑受影响验证
@@ -49,3 +51,5 @@
 24. **崩溃留下假锁** → pending、assignee 或 `in_progress` 写了一半，扫描器可能永久等待，也可能误杀正在激活的 winner。**解法：claim 带 pending lease 与 activation grace；grace 内不回收，过期后双重重读仍无 active 且状态匹配才终结；旧记录不删除。**
 25. **依赖关系不可见却假定传播完成** → API 权限不足或 Issue 没写依赖时，“搜不到”被误当成“没有”。**解法：记录已枚举范围，把已知下游置 `blocked`，源 Issue 打 `needs-lead`；补齐依赖图前不得宣称完成。**
 26. **解除传播阻断时凭感觉选状态** → 原本待审核的 PR 被退回 `ready`，或已失效的批准被直接恢复。**解法：置 `blocked` 前在矩阵记录唯一的阻断前状态；同步后只恢复该状态，缺失、非法或已过期时转 `needs-lead` 裁决。**
+27. **把「指定执行者」当成「已认领」** → 总负责人写了 `指定执行者` 就置 `in_progress`，或反过来以为指定了就不用认领。**解法：指定（编排）与认领（成交）分开落——`ready`/`in_progress`/`assignee` 三者正交；指定后保留 `ready`，被指定者仍走 claim 协议；工件写 Agent 实例名、`assignee` 填 GitHub 账号，两个都记。**
+28. **指定了真人却仍走一遍「告知人类」** → 被指定者本身就是真人，还让他等一轮确认。**解法：被指定者是真人（本人账号）⇒ 指派即代表真人已拍板接活，可省告知；被指定者是纯 Agent 账号（背后无真人）⇒ 仍须补足「先经人类确认 + 告知接活/验收」。先判是不是真人，别只看 `--add-assignee` 成功。**

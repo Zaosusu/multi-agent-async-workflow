@@ -113,6 +113,14 @@ Integrator-A / 总负责人
 > 没有关联 PR 的 `needs-review` 视为无效，Reviewer 应直接退回 `in_progress`。
 > `done` 只能由集成负责人在 PR 合并且 `main` 验证通过后设置。GitHub 因 `Closes #N` 自动关闭 Issue 时，也必须补齐标签和验证 comment，不能把自动关闭当作验收完成。
 > `指定执行者`、`审核负责人`、`集成负责人`记录的是用户任命的 Agent 实例，不依赖 GitHub 账号是否不同。
+>
+> **★ `指定执行者` 是编排决策，不是认领。** 指定（总负责人/真人决定「这活归谁」）与认领（执行者「我接了」）是两件事，状态分开落：
+> - `ready`=待认领 / `in_progress`=实施中 / `assignee`=归属，**三者正交**；
+> - 指定后**保留 `ready`**（被指定者尚未动工），**不要因「已指定」就置 `in_progress`**；
+> - 指定**不豁免** claim 协议：被指定者仍走 `pending → active`；指定的作用是**减少认领竞争**；
+> - 工件写 **Agent 实例名**，`assignee` 只能填 **GitHub 账号** ⇒ **两个都记**（「账号 X 的实例 Y」），别把账号当实例。
+>
+> **★ `source:human` / `human-only` 下，指定谁决定要不要补告知义务：** 被指定者是**真人**（本人账号）⇒ 指派即「真人已拍板接活」，**可省**「先经人类确认 + 告知接活/验收」；被指定者是**纯 Agent 账号**（背后无真人）⇒ **仍须**补足该义务。**别只看 `--add-assignee` 成功**。
 > 认领以 Issue 中 append-only 的 claim lifecycle comment 为身份事实源，assignee/标签只负责路由。状态机是 `pending -> active`，pending 或 active 可进入终态 `failed/abandoned`；只有最新合法事件为 active 且 lease 未过期的 claim 才表示已认领。未过期 pending 及其 activation grace 是合法激活窗口，scanner 不得清理；竞争、派发失败、过期回收与接管执行 `dependency-propagation.md` 的双重重读规则，旧 comment 不删除。
 > shared invariant 变化时，从 open、closed、`done` Issue 枚举直接/间接依赖。源 PR 在影响面矩阵验证后可先合并；仅未同步的活动下游记录阻断前状态后置 `blocked`，受影响的已交付物另开回归 Issue。完整协议见 `dependency-propagation.md`。
 > inherited gates 必须在当前 artifact 上产生证据。旧 commit、旧构建或旧配置的证据标为 `historical`，不能填 `pass`。
